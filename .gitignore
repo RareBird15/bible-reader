@@ -1,3 +1,7 @@
 __pycache__/
 .pytest_cache/
 *.pyc
+.bible_prompt_last_date
+current_day.txt
+.bible_prompt.lockdir
+.current_day.lock
