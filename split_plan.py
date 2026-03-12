@@ -2,7 +2,7 @@ import re
 import os
 
 INPUT_FILE = "plan.md"
-OUTPUT_DIR = "bible-days"
+OUTPUT_DIR = "days-commentary"
 
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -10,7 +10,7 @@ with open(INPUT_FILE, "r", encoding="utf-8") as f:
     text = f.read()
 
 # split on headings like "# Day 1", "# Chapter 1", etc
-sections = re.split(r'\n# ', text)
+sections = re.split(r"\n# ", text)
 
 count = 1
 

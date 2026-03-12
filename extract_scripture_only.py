@@ -1,7 +1,7 @@
 from pathlib import Path
 
-SOURCE = Path.home() / "bible-days-commentary"
-DEST = Path.home() / "bible-days"
+SOURCE = Path.home() / "projects/bible-reader/days-commentary"
+DEST = Path.home() / "projects/bible-reader/days"
 
 DEST.mkdir(exist_ok=True)
 
