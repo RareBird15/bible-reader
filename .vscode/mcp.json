@@ -1,0 +1,9 @@
+{
+	"servers": {
+		"Github": {
+			"type": "http",
+			"url": "https://github--smithery-ai.run.tools"
+		}
+	},
+	"inputs": []
+}

@@ -10,6 +10,7 @@ LOCK_DIR="$SCRIPT_DIR/.bible_prompt.lockdir"
 # read_today.py uses a separate lock for the counter file update path.
 if ! mkdir "$LOCK_DIR" 2>/dev/null; then
 	# Another instance is already handling today's prompt.
+	echo "Bible prompt skipped: lock directory already exists at $LOCK_DIR" >&2
 	exit 0
 fi
 
