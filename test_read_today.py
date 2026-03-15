@@ -1,7 +1,5 @@
 """Tests for read_today.py reading workflow and counter management."""
 
-# ruff: noqa: D101, D102, PT009
-
 import io
 import tempfile
 import unittest

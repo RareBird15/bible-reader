@@ -1,5 +1,7 @@
 # Bible Reader
 
+[![CI](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml)
+
 A lightweight terminal workflow for daily Bible reading.
 
 This project stores a day-by-day reading plan, shows one day at a time, and tracks your progress in a counter file.
@@ -46,6 +48,15 @@ rm -f .bible_prompt_last_date
 - Bash (for `maybe_read_bible.sh`)
 
 No third-party Python packages are required.
+
+## Development Checks
+
+Run these checks locally before committing:
+
+```bash
+ruff check .
+python3 -m unittest -q
+```
 
 ## Note on Day Numbering
 

@@ -1,7 +1,5 @@
 """Tests for split_plan.py splitting and validation behavior."""
 
-# ruff: noqa: D101, D102, PT009, PT027
-
 import tempfile
 import unittest
 from pathlib import Path

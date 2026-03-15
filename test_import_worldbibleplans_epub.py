@@ -1,7 +1,6 @@
 """Tests for import_worldbibleplans_epub.py."""
 
 # cspell:words worldbibleplans opendocument rootfiles rootfile OEBPS oebps itemref idref
-# ruff: noqa: D101, D102, PT009, PT027
 
 import tempfile
 import unittest
