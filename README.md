@@ -99,6 +99,14 @@ Important limitation:
 
 - Other EPUB layouts (for example, plans without commentary, plans with a different heading structure, or custom/non-WorldBiblePlans files) are not guaranteed to parse correctly because they have not been broadly tested yet.
 
+## Copyright and Content Notice
+
+This repository is intended to distribute tooling only.
+
+- Do not commit or publish copyrighted plan content (for example EPUB source files, generated `plan.md`, `days/`, or `days-commentary/`) unless you have explicit rights to do so.
+- The repository now ignores those content paths by default so they stay local.
+- Users should provide their own plan files and are responsible for ensuring they have permission to use that content.
+
 ## Script Usage
 
 ### 1) Split Plan Into Day Files

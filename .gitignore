@@ -6,3 +6,9 @@ current_day.txt
 .bible_prompt.lockdir
 .current_day.lock
 .vscode/
+
+# Local plan/content files (not distributed with this repo)
+plan.md
+days/
+days-commentary/
+*.epub
