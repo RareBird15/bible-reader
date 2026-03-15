@@ -6,6 +6,14 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+### Added
+
+- Add license file with MIT License text.
+- Add issue templates for bug reports and feature requests.
+- Add config file to enable blank issues and set up a discussion link.
+- Add pull request template to guide contributors in providing necessary information and context.
+- Add CONTRIBUTING.md with development setup instructions, contribution guidelines, and accessibility expectations.
+
 ## [1.0.1] - 2026-03-15
 
 ### Added

@@ -49,6 +49,46 @@ rm -f .bible_prompt_last_date
 
 No third-party Python packages are required.
 
+## Installation
+
+Clone the repository and move into the project directory:
+
+```bash
+git clone https://github.com/RareBird15/bible-reader.git
+cd bible-reader
+```
+
+Optional but recommended:
+
+```bash
+python3 -m venv .venv
+source .venv/bin/activate
+python3 -m pip install --upgrade pip
+```
+
+This project currently runs with the Python standard library only, so there is no required dependency install step.
+
+## Project Status
+
+This project is actively developed.
+
+Development cadence may be uneven, and there may be periods of slower progress or pauses due to health limitations. Bug reports and well-scoped contributions are still welcome during those periods.
+
+## Accessibility
+
+Accessibility is a core project goal.
+
+This project aims to provide an easy, low-friction, screen-reader-friendly way to read the Bible in a terminal workflow.
+
+When changing output, prompts, or documentation, prefer:
+
+- plain, readable text over decorative formatting
+- predictable headings and labels
+- wording that makes sense when read aloud by a screen reader
+- output that does not rely on visual alignment, color, or ASCII art to communicate meaning
+
+Contributors should treat regressions in accessibility as real regressions, not cosmetic issues.
+
 ## Development Checks
 
 Run these checks locally before committing:
@@ -63,6 +103,8 @@ python3 -m unittest -q
 - `CHANGELOG.md` tracks user-visible changes using versioned sections.
 - Pushing a tag like `v1.0.0` triggers `.github/workflows/release.yml`.
 - The release workflow publishes a GitHub Release and uses the matching `CHANGELOG.md` section as release notes.
+- Contribution guidelines live in `CONTRIBUTING.md`.
+- This repository is licensed under the MIT License. See `LICENSE`.
 
 Typical release flow:
 
@@ -250,6 +292,25 @@ python3 read_today.py
    ```bash
    bash maybe_read_bible.sh
    ```
+
+## Future Ideas
+
+- Broaden EPUB compatibility beyond the currently tested WorldBiblePlans-style layouts.
+- Add a small bootstrap command that runs import, split, and extract in one step.
+- Add optional tests around shell-wrapper behavior and locking edge cases.
+- Add support for alternate reading-plan formats besides EPUB-derived markdown.
+- Improve release notes and changelog maintenance with more automation over time.
+
+## Contributing
+
+Contributions are welcome, especially focused bug fixes, test coverage improvements, and importer compatibility work.
+
+Before opening a pull request:
+
+- Read `CONTRIBUTING.md` for development expectations.
+- Make sure changes preserve or improve accessibility.
+- Avoid committing copyrighted source content or generated plan output.
+- Run the local checks listed above.
 
 ## Logging
 
