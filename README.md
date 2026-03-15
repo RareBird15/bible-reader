@@ -19,6 +19,7 @@ This project stores a day-by-day reading plan, shows one day at a time, and trac
 - `current_day.txt`: Current day number used by the reader script.
 - `split_plan.py`: Builds `days-commentary/` from `plan.md`.
 - `extract_scripture_only.py`: Builds `days/` from `days-commentary/`.
+- `import_worldbibleplans_epub.py`: Imports a WorldBiblePlans-style EPUB into normalized `plan.md`.
 - `read_today.py`: Displays current day and prompts to mark complete.
 - `maybe_read_bible.sh`: Shell wrapper that runs `read_today.py` once per day.
 
@@ -88,6 +89,24 @@ Output:
 - Writes `days-commentary/day0001.txt`, `day0002.txt`, and so on.
 - Validates each non-cover section has at least two `##` headings.
 
+### 0) Import From EPUB (Optional)
+
+```bash
+python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
+```
+
+Debug mode:
+
+```bash
+python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md --debug
+```
+
+Behavior:
+
+- Reads EPUB spine order from the package document.
+- Detects day pages from `h1` headings like `Day N:`.
+- Writes normalized sections with scripture and commentary `##` headings for `split_plan.py`.
+
 ### 2) Extract Scripture-Only Files
 
 ```bash
@@ -139,7 +158,24 @@ Behavior:
 
 ## Recommended Daily Workflow
 
+### Full Setup From EPUB
+
+Run this sequence when starting from a new WorldBiblePlans EPUB:
+
+```bash
+python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
+python3 split_plan.py
+python3 extract_scripture_only.py
+python3 read_today.py
+```
+
 1. Generate/refresh day files when the source plan changes:
+
+   ```bash
+   python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
+   ```
+
+   then:
 
    ```bash
    python3 split_plan.py
