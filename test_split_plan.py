@@ -1,5 +1,7 @@
 """Tests for split_plan.py splitting and validation behavior."""
 
+# ruff: noqa: D101, D102, PT009, PT027
+
 import tempfile
 import unittest
 from pathlib import Path
@@ -53,7 +55,10 @@ class SplitPlanTests(unittest.TestCase):
             input_file = root / "plan.md"
             output_dir = root / "days-commentary"
             input_file.write_text(
-                "Simple cover text\n\n# Day 1\nref\n## Scripture\nA\n## Commentary\nB\n",
+                (
+                    "Simple cover text\n\n"
+                    "# Day 1\nref\n## Scripture\nA\n## Commentary\nB\n"
+                ),
                 encoding="utf-8",
             )
 

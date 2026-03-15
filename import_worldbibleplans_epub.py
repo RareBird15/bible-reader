@@ -6,6 +6,8 @@ markdown document that can be consumed by split_plan.py.
 
 from __future__ import annotations
 
+# cspell:words opendocument rootfile itemref idref
+
 import argparse
 import datetime as dt
 import logging
@@ -30,10 +32,43 @@ EXIT_ERROR = 1
 logger = logging.getLogger(__name__)
 
 
+class EpubImportError(ValueError):
+    """Base class for EPUB import validation errors."""
+
+
+class RootfileMissingError(EpubImportError):
+    """Raised when container.xml does not provide a rootfile entry."""
+
+    def __init__(self) -> None:
+        """Initialize with a stable, user-facing validation message."""
+        super().__init__("No rootfile entry found in EPUB container.xml")
+
+
+class RootfilePathMissingError(EpubImportError):
+    """Raised when rootfile entry exists but has no full-path."""
+
+    def __init__(self) -> None:
+        """Initialize with a stable, user-facing validation message."""
+        super().__init__("EPUB rootfile is missing full-path attribute")
+
+
+class NoDayEntriesError(EpubImportError):
+    """Raised when no day pages can be extracted from the EPUB."""
+
+    def __init__(self) -> None:
+        """Initialize with guidance for unsupported or malformed EPUB input."""
+        super().__init__(
+            "No day entries were detected in the EPUB. "
+            "Verify this is a WorldBiblePlans-style file.",
+        )
+
+
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments for EPUB import."""
     parser = argparse.ArgumentParser(
-        description="Import a WorldBiblePlans EPUB into normalized markdown plan format.",
+        description=(
+            "Import a WorldBiblePlans EPUB into normalized markdown plan format."
+        ),
     )
     parser.add_argument("epub", type=Path, help="Path to source EPUB")
     parser.add_argument(
@@ -60,16 +95,16 @@ def normalize_text(text: str) -> str:
 
 def get_package_document_path(epub_zip: zipfile.ZipFile) -> PurePosixPath:
     """Read container.xml and return the OPF package document path."""
-    root = ET.fromstring(epub_zip.read(CONTAINER_PATH))
+    root = ET.fromstring(epub_zip.read(CONTAINER_PATH))  # noqa: S314
     rootfile = root.find(
         ".//{urn:oasis:names:tc:opendocument:xmlns:container}rootfile",
     )
     if rootfile is None:
-        raise ValueError("No rootfile entry found in EPUB container.xml")
+        raise RootfileMissingError
 
     full_path = rootfile.get("full-path")
     if not full_path:
-        raise ValueError("EPUB rootfile is missing full-path attribute")
+        raise RootfilePathMissingError
 
     return PurePosixPath(full_path)
 
@@ -79,7 +114,7 @@ def get_spine_items(
     package_path: PurePosixPath,
 ) -> list[PurePosixPath]:
     """Return content document paths in spine reading order."""
-    root = ET.fromstring(epub_zip.read(str(package_path)))
+    root = ET.fromstring(epub_zip.read(str(package_path)))  # noqa: S314
     ns = {"opf": OPF_NS}
 
     manifest: dict[str, str] = {}
@@ -106,7 +141,7 @@ def get_spine_items(
 
 def extract_block_tokens(xhtml: str) -> list[tuple[str, str]]:
     """Extract normalized block-level tokens (tag, text) from XHTML body."""
-    root = ET.fromstring(xhtml)
+    root = ET.fromstring(xhtml)  # noqa: S314
     body = root.find(".//{http://www.w3.org/1999/xhtml}body")
     if body is None:
         return []
@@ -129,6 +164,7 @@ def parse_day_entry(xhtml: str) -> tuple[int, str] | None:
     Returns:
         (day_number, markdown_section_without_heading) if this file is a day page,
         otherwise None.
+
     """
     tokens = extract_block_tokens(xhtml)
     if not tokens:
@@ -207,6 +243,7 @@ def import_epub_to_plan(epub_path: Path, output_path: Path) -> int:
 
     Returns:
         Number of day sections written.
+
     """
     seen_days: set[int] = set()
     sections: list[tuple[int, str]] = []
@@ -240,10 +277,7 @@ def import_epub_to_plan(epub_path: Path, output_path: Path) -> int:
             sections.append((day_number, section_text))
 
     if not sections:
-        raise ValueError(
-            "No day entries were detected in the EPUB. "
-            "Verify this is a WorldBiblePlans-style file.",
-        )
+        raise NoDayEntriesError
 
     sections.sort(key=lambda item: item[0])
 

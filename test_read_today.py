@@ -1,5 +1,7 @@
 """Tests for read_today.py reading workflow and counter management."""
 
+# ruff: noqa: D101, D102, PT009
+
 import io
 import tempfile
 import unittest
@@ -146,7 +148,8 @@ class ReadingWorkflowTests(unittest.TestCase):
         self.assertEqual(final_day, FIRST_FILE + 1)
         self.assertEqual(plan_last_day, FIRST_FILE)
         self.assertEqual(
-            self.counter.read_text(encoding="utf-8").strip(), str(FIRST_FILE + 1)
+            self.counter.read_text(encoding="utf-8").strip(),
+            str(FIRST_FILE + 1),
         )
 
     def test_n_keeps_counter_and_returns_declined(self) -> None:
@@ -155,7 +158,8 @@ class ReadingWorkflowTests(unittest.TestCase):
         self.assertEqual(final_day, FIRST_FILE)
         self.assertEqual(plan_last_day, FIRST_FILE)
         self.assertEqual(
-            self.counter.read_text(encoding="utf-8").strip(), str(FIRST_FILE)
+            self.counter.read_text(encoding="utf-8").strip(),
+            str(FIRST_FILE),
         )
 
     def test_eof_on_reading_prompt_treated_as_decline(self) -> None:
@@ -171,7 +175,8 @@ class ReadingWorkflowTests(unittest.TestCase):
         self.assertEqual(final_day, FIRST_FILE)
         # Counter should not have been advanced.
         self.assertEqual(
-            self.counter.read_text(encoding="utf-8").strip(), str(FIRST_FILE)
+            self.counter.read_text(encoding="utf-8").strip(),
+            str(FIRST_FILE),
         )
 
     def test_counter_past_detected_plan_last_day_returns_complete(self) -> None:

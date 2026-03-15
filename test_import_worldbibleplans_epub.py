@@ -1,5 +1,8 @@
 """Tests for import_worldbibleplans_epub.py."""
 
+# cspell:words worldbibleplans opendocument rootfiles rootfile OEBPS oebps itemref idref
+# ruff: noqa: D101, D102, PT009, PT027
+
 import tempfile
 import unittest
 import zipfile
@@ -12,7 +15,10 @@ def _build_sample_epub(epub_path: Path) -> None:
     container_xml = """<?xml version='1.0' encoding='utf-8'?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
-    <rootfile full-path="OEBPS/content.opf" media-type="application/oebps-package+xml"/>
+    <rootfile
+      full-path="OEBPS/content.opf"
+      media-type="application/oebps-package+xml"
+    />
   </rootfiles>
 </container>
 """
@@ -33,7 +39,9 @@ def _build_sample_epub(epub_path: Path) -> None:
 """
 
     toc_xhtml = """<?xml version='1.0' encoding='utf-8'?>
-<html xmlns="http://www.w3.org/1999/xhtml"><body><h1>Table of Contents</h1></body></html>
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <body><h1>Table of Contents</h1></body>
+</html>
 """
 
     day1_xhtml = """<?xml version='1.0' encoding='utf-8'?>
