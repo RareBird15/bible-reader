@@ -113,7 +113,38 @@ def run_locked_workflow() -> tuple[int, int]:
             day = FIRST_FILE
             write_counter(counter_file, FIRST_FILE)
         else:
-            day = int(counter_raw)
+            try:
+                day = int(counter_raw)
+            except ValueError:
+                logger.warning(
+                    "Counter file %s contained non-numeric value %r; resetting to first day %d",
+                    COUNTER,
+                    counter_raw,
+                    FIRST_FILE,
+                )
+                day = FIRST_FILE
+                write_counter(counter_file, FIRST_FILE)
+
+        if day < FIRST_FILE:
+            logger.warning(
+                "Counter file %s had out-of-range day %d (< %d); resetting to first day",
+                COUNTER,
+                day,
+                FIRST_FILE,
+            )
+            day = FIRST_FILE
+            write_counter(counter_file, FIRST_FILE)
+
+        max_valid_counter = LAST_FILE + 1
+        if day > max_valid_counter:
+            logger.warning(
+                "Counter file %s had out-of-range day %d (> %d); resetting to first day",
+                COUNTER,
+                day,
+                max_valid_counter,
+            )
+            day = FIRST_FILE
+            write_counter(counter_file, FIRST_FILE)
 
         if day > LAST_FILE:
             return (EXIT_COMPLETE, day)

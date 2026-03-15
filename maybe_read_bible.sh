@@ -51,8 +51,13 @@ lock_matches_running_process() {
 
 acquire_lock() {
 	if mkdir "$LOCK_DIR" 2>/dev/null; then
-		write_lock_metadata
-		return 0
+		if write_lock_metadata; then
+			return 0
+		fi
+
+		echo "Bible prompt skipped: failed to write lock metadata at $LOCK_DIR" >&2
+		rmdir "$LOCK_DIR" 2>/dev/null || true
+		return 1
 	fi
 
 	if [[ -f "$LOCK_PID_FILE" ]]; then
@@ -80,8 +85,13 @@ acquire_lock() {
 	fi
 
 	if mkdir "$LOCK_DIR" 2>/dev/null; then
-		write_lock_metadata
-		return 0
+		if write_lock_metadata; then
+			return 0
+		fi
+
+		echo "Bible prompt skipped: failed to write lock metadata at $LOCK_DIR" >&2
+		rmdir "$LOCK_DIR" 2>/dev/null || true
+		return 1
 	fi
 
 	echo "Bible prompt skipped: lock directory already exists at $LOCK_DIR" >&2

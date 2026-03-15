@@ -22,6 +22,22 @@ This project stores a day-by-day reading plan, shows one day at a time, and trac
 - `read_today.py`: Displays current day and prompts to mark complete.
 - `maybe_read_bible.sh`: Shell wrapper that runs `read_today.py` once per day.
 
+## Local State Files
+
+The following files are local runtime state and should not be committed:
+
+- `current_day.txt`: your personal reading position
+- `.bible_prompt_last_date`: last date the daily shell prompt completed
+
+These files are intentionally listed in `.gitignore`.
+
+If you ever need to reset your local progress:
+
+```bash
+echo 2 > current_day.txt
+rm -f .bible_prompt_last_date
+```
+
 ## Requirements
 
 - Python 3.10+
