@@ -14,6 +14,10 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Add pull request template to guide contributors in providing necessary information and context.
 - Add CONTRIBUTING.md with development setup instructions, contribution guidelines, and accessibility expectations.
 
+### Fixed
+
+- Fix a missing command in the Quick Start section of the README for the full setup from EPUB workflow.
+
 ## [1.0.1] - 2026-03-15
 
 ### Added

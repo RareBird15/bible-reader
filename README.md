@@ -133,6 +133,7 @@ and uses `LAST_FILE = 1190` only as a fallback when no day files are found.
 From the project root:
 
 ```bash
+python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
 python3 split_plan.py
 python3 extract_scripture_only.py
 python3 read_today.py
