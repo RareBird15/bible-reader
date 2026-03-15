@@ -58,6 +58,26 @@ ruff check .
 python3 -m unittest -q
 ```
 
+## Changelog and Releases
+
+- `CHANGELOG.md` tracks user-visible changes using versioned sections.
+- Pushing a tag like `v1.0.0` triggers `.github/workflows/release.yml`.
+- The release workflow publishes a GitHub Release and uses the matching `CHANGELOG.md` section as release notes.
+
+Typical release flow:
+
+```bash
+# 1) Update CHANGELOG.md with a new version section (for example: ## [1.1.0] - YYYY-MM-DD)
+# 2) Commit and push the changelog update
+git add CHANGELOG.md
+git commit -m "Prepare v1.1.0"
+git push origin main
+
+# 3) Create and push the version tag
+git tag v1.1.0
+git push origin v1.1.0
+```
+
 ## Note on Day Numbering
 
 The reading counter starts at day 2 (`FIRST_FILE = 2`) because day 1 in the source
@@ -104,7 +124,7 @@ Important limitation:
 This repository is intended to distribute tooling only.
 
 - Do not commit or publish copyrighted plan content (for example EPUB source files, generated `plan.md`, `days/`, or `days-commentary/`) unless you have explicit rights to do so.
-- The repository now ignores those content paths by default so they stay local.
+- The repository ignores those content paths by default so they stay local.
 - Users should provide their own plan files and are responsible for ensuring they have permission to use that content.
 
 ## Script Usage
