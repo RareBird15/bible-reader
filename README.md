@@ -49,8 +49,10 @@ No third-party Python packages are required.
 ## Note on Day Numbering
 
 The reading counter starts at day 2 (`FIRST_FILE = 2`) because day 1 in the source
-file is a cover or introduction page, not a reading day. The plan spans days 2
-through 1190 (`LAST_FILE = 1190`), for a total of 1189 reading days.
+file is a cover or introduction page, not a reading day.
+
+`read_today.py` now detects the plan length dynamically from `days-commentary/day*.txt`
+and uses `LAST_FILE = 1190` only as a fallback when no day files are found.
 
 ## Quick Start
 
@@ -84,6 +86,7 @@ python3 split_plan.py --debug
 Output:
 
 - Writes `days-commentary/day0001.txt`, `day0002.txt`, and so on.
+- Validates each non-cover section has at least two `##` headings.
 
 ### 2) Extract Scripture-Only Files
 

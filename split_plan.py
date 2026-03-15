@@ -20,6 +20,8 @@ def parse_args() -> argparse.Namespace:
 
 logger = logging.getLogger(__name__)
 EXIT_ERROR = 1
+MIN_NON_EMPTY_LINES = 2
+MIN_H2_HEADINGS_PER_DAY = 2
 
 
 def log_unhandled_exception(message: str) -> None:
@@ -30,6 +32,39 @@ def log_unhandled_exception(message: str) -> None:
             format="%(asctime)s %(levelname)s %(message)s",
         )
     logger.exception(message)
+
+
+def validate_section(section: str, section_number: int) -> list[str]:
+    """Validate a split section against expected day-file structure.
+
+    Section 1 is treated as cover/introduction and only requires non-empty text.
+    All later sections must contain at least two non-empty lines and at least two
+    H2 headings ("##"), matching downstream parser expectations.
+    """
+    lines = section.splitlines()
+    non_empty_lines = [line for line in lines if line.strip()]
+    heading_count = sum(1 for line in lines if line.startswith("##"))
+
+    errors: list[str] = []
+
+    min_non_empty = 1 if section_number == 1 else MIN_NON_EMPTY_LINES
+    if len(non_empty_lines) < min_non_empty:
+        errors.append(
+            (
+                f"section {section_number} has {len(non_empty_lines)} non-empty line(s); "
+                f"expected at least {min_non_empty}"
+            )
+        )
+
+    if section_number > 1 and heading_count < MIN_H2_HEADINGS_PER_DAY:
+        errors.append(
+            (
+                f"section {section_number} has {heading_count} '##' heading(s); "
+                f"expected at least {MIN_H2_HEADINGS_PER_DAY}"
+            )
+        )
+
+    return errors
 
 
 def main() -> None:
@@ -57,6 +92,10 @@ def main() -> None:
         if not section:
             continue
 
+        section_errors = validate_section(section, count)
+        if section_errors:
+            raise ValueError("; ".join(section_errors))
+
         output_file = OUTPUT_DIR / f"day{count:04}.txt"
 
         output_file.write_text(section, encoding="utf-8")
@@ -70,6 +109,14 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
+    except ValueError as exc:
+        if not logging.getLogger().hasHandlers():
+            logging.basicConfig(
+                level=logging.ERROR,
+                format="%(asctime)s %(levelname)s %(message)s",
+            )
+        logger.error("Validation error while splitting plan: %s", exc)
+        sys.exit(EXIT_ERROR)
     except (FileNotFoundError, PermissionError):
         log_unhandled_exception(
             "File error while reading input plan or writing output day files",

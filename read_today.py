@@ -11,6 +11,7 @@ Exit codes:
 
 import argparse
 import logging
+import re
 import sys
 from pathlib import Path
 from typing import TextIO
@@ -30,6 +31,7 @@ COMMENTARY_BASE = SCRIPT_DIR / "days-commentary"
 FIRST_FILE = 2
 LAST_FILE = 1190
 MIN_COMMENTARY_HEADER_LINES = 2
+DAY_FILE_RE = re.compile(r"^day(\d+)\.txt$")
 EXIT_COMPLETE = 0
 EXIT_ERROR = 1
 EXIT_USER_DECLINED = 2
@@ -83,17 +85,43 @@ def get_problem_path(exc: OSError) -> str:
     return getattr(exc, "filename", None) or str(exc)
 
 
-def run_locked_workflow() -> tuple[int, int]:
+def get_plan_last_day() -> int:
+    """Return the largest day number found in commentary files.
+
+    Falls back to LAST_FILE if no matching files are found.
+    """
+    day_numbers: list[int] = []
+    for path in COMMENTARY_BASE.glob("day*.txt"):
+        match = DAY_FILE_RE.match(path.name)
+        if not match:
+            continue
+        day_numbers.append(int(match.group(1)))
+
+    if not day_numbers:
+        logger.warning(
+            "No commentary day files found in %s; using fallback LAST_FILE=%d",
+            COMMENTARY_BASE,
+            LAST_FILE,
+        )
+        return LAST_FILE
+
+    return max(day_numbers)
+
+
+def run_locked_workflow() -> tuple[int, int, int]:
     """Execute read/prompt/update while holding the counter lock.
 
     Returns:
-        A tuple of (exit_code, final_day) where exit_code indicates the result
-        (EXIT_COMPLETE, EXIT_ERROR, or EXIT_USER_DECLINED) and final_day is the
-        current day counter value.
+        A tuple of (exit_code, final_day, plan_last_day) where exit_code
+        indicates the result (EXIT_COMPLETE, EXIT_ERROR, or EXIT_USER_DECLINED),
+        final_day is the current day counter value, and plan_last_day is the
+        highest detected day number in the commentary files.
 
     """
     if not COUNTER.exists():
         COUNTER.write_text(f"{FIRST_FILE}\n", encoding="utf-8")
+
+    plan_last_day = get_plan_last_day()
 
     # Open in read+write mode and seek to the start to read/update the counter.
     # "r+" is used instead of "a+" because "a+" sets O_APPEND at the OS level,
@@ -139,7 +167,7 @@ def run_locked_workflow() -> tuple[int, int]:
             day = FIRST_FILE
             write_counter(counter_file, FIRST_FILE)
 
-        max_valid_counter = LAST_FILE + 1
+        max_valid_counter = plan_last_day + 1
         if day > max_valid_counter:
             logger.warning(
                 "Counter file %s had out-of-range day %d (> %d); resetting to first day",
@@ -150,8 +178,8 @@ def run_locked_workflow() -> tuple[int, int]:
             day = FIRST_FILE
             write_counter(counter_file, FIRST_FILE)
 
-        if day > LAST_FILE:
-            return (EXIT_COMPLETE, day)
+        if day > plan_last_day:
+            return (EXIT_COMPLETE, day, plan_last_day)
 
         commentary_file = COMMENTARY_BASE / f"day{day:04}.txt"
         logger.debug("Reading commentary header from %s", commentary_file)
@@ -172,7 +200,7 @@ def run_locked_workflow() -> tuple[int, int]:
                 MIN_COMMENTARY_HEADER_LINES,
                 len(commentary_lines),
             )
-            return (EXIT_ERROR, day)
+            return (EXIT_ERROR, day, plan_last_day)
         day_label = commentary_lines[0]
         reference = commentary_lines[1]
 
@@ -203,11 +231,11 @@ def run_locked_workflow() -> tuple[int, int]:
         if answer == "y":
             write_counter(counter_file, day + 1)
             logger.info("Advanced to next day.")
-            return (EXIT_COMPLETE, day + 1)
+            return (EXIT_COMPLETE, day + 1, plan_last_day)
 
         logger.info("Keeping your place.")
         # User intentionally kept current day; this is not an execution error.
-        return (EXIT_USER_DECLINED, day)
+        return (EXIT_USER_DECLINED, day, plan_last_day)
 
 
 def main() -> None:
@@ -237,11 +265,11 @@ def main() -> None:
         fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
         try:
             while True:
-                exit_code, final_day = run_locked_workflow()
+                exit_code, final_day, plan_last_day = run_locked_workflow()
 
                 # If the user completed reading and reached the end of the plan,
                 # offer to restart from the beginning.
-                if final_day > LAST_FILE and exit_code == EXIT_COMPLETE:
+                if final_day > plan_last_day and exit_code == EXIT_COMPLETE:
                     write_user_output()
                     write_user_output("You have finished the entire reading plan!")
                     try:
