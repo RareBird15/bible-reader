@@ -85,7 +85,7 @@ When prompted:
 
 The EPUB import flow is designed for plans from WorldBiblePlans.com:
 
-- https://worldbibleplans.com/
+- <https://worldbibleplans.com/>
 
 Current compatibility target:
 
