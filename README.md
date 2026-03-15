@@ -49,7 +49,8 @@ No third-party Python packages are required.
 ## Note on Day Numbering
 
 The reading counter starts at day 2 (`FIRST_FILE = 2`) because day 1 in the source
-file is a cover or introduction page, not a reading day.
+file is a cover or introduction page, not a reading day. The plan spans days 2
+through 1190 (`LAST_FILE = 1190`), for a total of 1189 reading days.
 
 ## Quick Start
 

@@ -44,7 +44,10 @@ def main() -> None:
 
     text = INPUT_FILE.read_text(encoding="utf-8")
 
-    # split on headings like "# Day 1", "# Chapter 1", etc
+    # Split on "\n# " so each "# Heading" line becomes the start of a new section.
+    # The delimiter requires a preceding newline, so a "# " at the very start of
+    # the file would not split — but the source plan always has leading content
+    # (cover/TOC) before the first heading, so this is intentional.
     sections = re.split(r"\n# ", text)
 
     count = 1

@@ -95,9 +95,13 @@ def run_locked_workflow() -> tuple[int, int]:
     if not COUNTER.exists():
         COUNTER.write_text(f"{FIRST_FILE}\n", encoding="utf-8")
 
-    # Open in append+read mode (which creates the file if needed) and seek to the
-    # start to read/update the counter.
-    with COUNTER.open("a+", encoding="utf-8") as counter_file:
+    # Open in read+write mode and seek to the start to read/update the counter.
+    # "r+" is used instead of "a+" because "a+" sets O_APPEND at the OS level,
+    # causing all writes to go to EOF regardless of seek position, which would
+    # corrupt the counter (e.g. "3" + write "4\n" → "34\n" → reads as 34).
+    # File creation is handled by the COUNTER.exists() guard above, so "r+"
+    # (which requires the file to exist) is safe here.
+    with COUNTER.open("r+", encoding="utf-8") as counter_file:
         # NOTE: This function is expected to be called while the external
         # COUNTER_LOCK file lock on the counter is already held by main();
         # no additional per-file advisory lock is acquired here to avoid
@@ -190,7 +194,11 @@ def run_locked_workflow() -> tuple[int, int]:
 
         write_user_output()
 
-        answer = input("Mark this reading complete? (y/n): ").strip().lower()
+        try:
+            answer = input("Mark this reading complete? (y/n): ").strip().lower()
+        except EOFError:
+            logger.warning("No interactive input available; treating as decline.")
+            answer = ""
 
         if answer == "y":
             write_counter(counter_file, day + 1)
@@ -236,12 +244,18 @@ def main() -> None:
                 if final_day > LAST_FILE and exit_code == EXIT_COMPLETE:
                     write_user_output()
                     write_user_output("You have finished the entire reading plan!")
-                    answer = (
-                        input("Restart from the beginning? (y/n): ").strip().lower()
-                    )
+                    try:
+                        answer = (
+                            input("Restart from the beginning? (y/n): ").strip().lower()
+                        )
+                    except EOFError:
+                        logger.warning(
+                            "No interactive input available; skipping restart."
+                        )
+                        answer = ""
                     if answer == "y":
                         # Reset counter to first day; next loop iteration will use it.
-                        with COUNTER.open("a+", encoding="utf-8") as counter_file:
+                        with COUNTER.open("r+", encoding="utf-8") as counter_file:
                             counter_file.seek(0)
                             write_counter(counter_file, FIRST_FILE)
                         continue

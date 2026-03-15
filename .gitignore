@@ -5,3 +5,4 @@ __pycache__/
 current_day.txt
 .bible_prompt.lockdir
 .current_day.lock
+.vscode/
