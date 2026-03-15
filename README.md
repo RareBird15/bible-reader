@@ -81,6 +81,24 @@ When prompted:
 - Enter `y` to advance to the next day.
 - Enter `n` to keep your current day.
 
+## Plan Source and Compatibility
+
+The EPUB import flow is designed for plans from WorldBiblePlans.com:
+
+- https://worldbibleplans.com/
+
+Current compatibility target:
+
+- Plans that include full Bible text plus commentary in each day page.
+
+Known-compatible sample:
+
+- `New-Living-Translation-2015-Chuck-Smith-Commentary-Gen-to-Rev-Scriptures-1-Chapter-Daily-Verse-By-Day.epub`
+
+Important limitation:
+
+- Other EPUB layouts (for example, plans without commentary, plans with a different heading structure, or custom/non-WorldBiblePlans files) are not guaranteed to parse correctly because they have not been broadly tested yet.
+
 ## Script Usage
 
 ### 1) Split Plan Into Day Files
