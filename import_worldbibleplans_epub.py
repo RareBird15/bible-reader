@@ -6,8 +6,6 @@ markdown document that can be consumed by split_plan.py.
 
 from __future__ import annotations
 
-# cspell:words opendocument rootfile itemref idref
-
 import argparse
 import datetime as dt
 import logging
@@ -16,6 +14,8 @@ import sys
 import zipfile
 from pathlib import Path, PurePosixPath
 from xml.etree import ElementTree as ET
+
+# cspell:words opendocument rootfile itemref idref
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 DEFAULT_OUTPUT = SCRIPT_DIR / "plan.md"
