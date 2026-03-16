@@ -11,6 +11,7 @@ import import_worldbibleplans_epub as importer
 
 
 def _build_sample_epub(epub_path: Path) -> None:
+    """Create a minimal valid sample EPUB with two day entries."""
     container_xml = """<?xml version='1.0' encoding='utf-8'?>
 <container version="1.0" xmlns="urn:oasis:names:tc:opendocument:xmlns:container">
   <rootfiles>
@@ -82,6 +83,8 @@ def _build_sample_epub(epub_path: Path) -> None:
 
 
 class ImportEpubTests(unittest.TestCase):
+    """Tests for EPUB parsing and markdown import output."""
+
     def test_parse_day_entry_returns_normalized_section(self) -> None:
         xhtml = """<?xml version='1.0' encoding='utf-8'?>
 <html xmlns="http://www.w3.org/1999/xhtml">

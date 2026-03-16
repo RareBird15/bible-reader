@@ -9,7 +9,10 @@ import split_plan
 
 
 class SplitPlanTests(unittest.TestCase):
+    """Tests for split_plan.py splitting and validation behavior."""
+
     def _run_main(self, input_file: Path, output_dir: Path) -> None:
+        """Run split_plan.main() with temporary input/output overrides."""
         with (
             patch.object(split_plan, "INPUT_FILE", input_file),
             patch.object(split_plan, "OUTPUT_DIR", output_dir),

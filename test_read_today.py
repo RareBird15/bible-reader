@@ -18,6 +18,8 @@ from read_today import (
 
 
 class WriteCounterTests(unittest.TestCase):
+    """Tests for writing normalized day-counter content."""
+
     def test_writes_day_number(self) -> None:
         buf = io.StringIO()
         write_counter(buf, 42)
@@ -51,7 +53,7 @@ def _run_workflow(
     tmpdir: Path,
     counter_value: str,
     user_input: str = "n",
-) -> tuple:
+) -> tuple[int, int, int]:
     """Run run_locked_workflow with patched paths and mocked input/output."""
     counter = tmpdir / "current_day.txt"
     counter.write_text(counter_value, encoding="utf-8")
@@ -95,6 +97,8 @@ class CounterValidationTests(unittest.TestCase):
 
 
 class PlanLengthDetectionTests(unittest.TestCase):
+    """Tests for detecting the last available day from commentary files."""
+
     def test_detects_max_day_from_commentary_files(self) -> None:
         with tempfile.TemporaryDirectory() as tmpdir:
             commentary = Path(tmpdir)
@@ -117,6 +121,7 @@ class ReadingWorkflowTests(unittest.TestCase):
     """Tests for reading prompt, counter advancement, and EOFError handling."""
 
     def setUp(self) -> None:
+        """Create isolated files and directories for each test case."""
         self._tmpdir_obj = tempfile.TemporaryDirectory()
         tmpdir = Path(self._tmpdir_obj.name)
         self.counter = tmpdir / "current_day.txt"
@@ -128,9 +133,11 @@ class ReadingWorkflowTests(unittest.TestCase):
         _make_day_files(self.base, self.commentary_base, FIRST_FILE)
 
     def tearDown(self) -> None:
+        """Clean up temporary resources created in setUp."""
         self._tmpdir_obj.cleanup()
 
-    def _run(self, user_input: str) -> tuple:
+    def _run(self, user_input: str) -> tuple[int, int, int]:
+        """Execute the reading workflow under controlled test patches."""
         with (
             patch.object(read_today, "COUNTER", self.counter),
             patch.object(read_today, "COMMENTARY_BASE", self.commentary_base),

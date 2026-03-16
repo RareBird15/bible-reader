@@ -13,6 +13,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Add config file to enable blank issues and set up a discussion link.
 - Add pull request template to guide contributors in providing necessary information and context.
 - Add CONTRIBUTING.md with development setup instructions, contribution guidelines, and accessibility expectations.
+- Update scripts with docstrings and typing annotations for better readability and maintainability.
 
 ### Fixed
 

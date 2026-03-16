@@ -1,3 +1,5 @@
+"""Tests for extract_scripture_only.py."""
+
 import tempfile
 import unittest
 from pathlib import Path
@@ -8,6 +10,8 @@ from extract_scripture_only import trim_blank_lines
 
 
 class TrimBlankLinesTests(unittest.TestCase):
+    """Tests for line-trimming helper behavior."""
+
     def test_empty_list_returns_empty(self) -> None:
         self.assertEqual(trim_blank_lines([]), [])
 
@@ -31,6 +35,7 @@ class ExtractionTests(unittest.TestCase):
     """Tests for extract_scripture_only.main() file processing pipeline."""
 
     def _run_main(self, source: Path, dest: Path) -> None:
+        """Run extraction with temporary source/destination overrides."""
         with (
             patch.object(extract_scripture_only, "SOURCE", source),
             patch.object(extract_scripture_only, "DEST", dest),
