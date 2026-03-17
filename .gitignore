@@ -3,6 +3,7 @@ __pycache__/
 *.pyc
 .bible_prompt_last_date
 current_day.txt
+.bible-reader.lock
 .bible_prompt.lockdir
 .current_day.lock
 .vscode/

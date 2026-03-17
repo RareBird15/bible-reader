@@ -14,18 +14,15 @@ import logging
 import re
 import sys
 from pathlib import Path
-from typing import TextIO
+from typing import Callable, TextIO
 
-try:
-    import fcntl
-except ImportError:  # pragma: no cover - platform-dependent import
-    fcntl = None
+from filelock import FileLock, Timeout
 
 SCRIPT_DIR = Path(__file__).resolve().parent
 SCRIPT_NAME = Path(__file__).name
 BASE = SCRIPT_DIR / "days"
 COUNTER = SCRIPT_DIR / "current_day.txt"
-COUNTER_LOCK = SCRIPT_DIR / ".current_day.lock"
+RUNTIME_LOCK = SCRIPT_DIR / ".bible-reader.lock"
 COMMENTARY_BASE = SCRIPT_DIR / "days-commentary"
 
 FIRST_FILE = 2
@@ -35,6 +32,7 @@ DAY_FILE_RE = re.compile(r"^day(\d+)\.txt$")
 EXIT_COMPLETE = 0
 EXIT_ERROR = 1
 EXIT_USER_DECLINED = 2
+EXIT_LOCKED = 3
 
 
 def parse_args() -> argparse.Namespace:
@@ -131,7 +129,7 @@ def run_locked_workflow() -> tuple[int, int, int]:
     # (which requires the file to exist) is safe here.
     with COUNTER.open("r+", encoding="utf-8") as counter_file:
         # NOTE: This function is expected to be called while the external
-        # COUNTER_LOCK file lock on the counter is already held by main();
+        # runtime file lock is already held by main();
         # no additional per-file advisory lock is acquired here to avoid
         # nested locking complexity.
         counter_file.seek(0)
@@ -238,60 +236,57 @@ def run_locked_workflow() -> tuple[int, int, int]:
         return (EXIT_USER_DECLINED, day, plan_last_day)
 
 
+def run_reading_loop() -> int:
+    """Run the reading workflow loop and return an exit code."""
+    while True:
+        exit_code, final_day, plan_last_day = run_locked_workflow()
+
+        # If the user completed reading and reached the end of the plan,
+        # offer to restart from the beginning.
+        if final_day > plan_last_day and exit_code == EXIT_COMPLETE:
+            write_user_output()
+            write_user_output("You have finished the entire reading plan!")
+            try:
+                answer = input("Restart from the beginning? (y/n): ").strip().lower()
+            except EOFError:
+                logger.warning("No interactive input available; skipping restart.")
+                answer = ""
+            if answer == "y":
+                # Reset counter to first day; next loop iteration will use it.
+                with COUNTER.open("r+", encoding="utf-8") as counter_file:
+                    counter_file.seek(0)
+                    write_counter(counter_file, FIRST_FILE)
+                continue
+
+        # For all other paths, return the workflow exit code.
+        return exit_code
+
+
+def run_with_single_instance_lock(workflow: Callable[[], int]) -> int:
+    """Run a workflow under a non-blocking single-instance lock."""
+    lock = FileLock(str(RUNTIME_LOCK), timeout=0)
+    try:
+        with lock:
+            # Serialize the full read/prompt/update cycle to prevent concurrent
+            # runs from reading the same day and overwriting updates.
+            return workflow()
+    except Timeout:
+        write_user_output(
+            "Another Bible reader instance is already running. "
+            "Please try again in a moment."
+        )
+        logger.info("Skipped run because lock is already held: %s", RUNTIME_LOCK)
+        return EXIT_LOCKED
+
+
 def main() -> None:
     """Run today's reading workflow and optionally advance the counter."""
-    if fcntl is None:
-        ensure_error_logging_configured()
-        logger.error(
-            "%s requires a POSIX-compatible platform (Linux/macOS); "
-            "the fcntl module is not available on this platform. "
-            "Please run this script on Linux or macOS, or on Windows via WSL "
-            "(Windows Subsystem for Linux) or another POSIX-compatible environment.",
-            SCRIPT_NAME,
-        )
-        sys.exit(EXIT_ERROR)
-
     args = parse_args()
     logging.basicConfig(
         level=logging.DEBUG if args.debug else logging.INFO,
         format="%(asctime)s %(levelname)s %(message)s",
     )
-
-    with COUNTER_LOCK.open("w", encoding="utf-8") as lock_file:
-        # Serialize the full read/prompt/update cycle to prevent concurrent
-        # runs from reading the same day and overwriting updates.
-        # This lock coordinates counter state only; maybe_read_bible.sh uses a
-        # separate shell-level lock to avoid duplicate prompt/stamp workflows.
-        fcntl.flock(lock_file.fileno(), fcntl.LOCK_EX)
-        try:
-            while True:
-                exit_code, final_day, plan_last_day = run_locked_workflow()
-
-                # If the user completed reading and reached the end of the plan,
-                # offer to restart from the beginning.
-                if final_day > plan_last_day and exit_code == EXIT_COMPLETE:
-                    write_user_output()
-                    write_user_output("You have finished the entire reading plan!")
-                    try:
-                        answer = (
-                            input("Restart from the beginning? (y/n): ").strip().lower()
-                        )
-                    except EOFError:
-                        logger.warning(
-                            "No interactive input available; skipping restart."
-                        )
-                        answer = ""
-                    if answer == "y":
-                        # Reset counter to first day; next loop iteration will use it.
-                        with COUNTER.open("r+", encoding="utf-8") as counter_file:
-                            counter_file.seek(0)
-                            write_counter(counter_file, FIRST_FILE)
-                        continue
-
-                # For all other paths, exit with the returned exit code.
-                sys.exit(exit_code)
-        finally:
-            fcntl.flock(lock_file.fileno(), fcntl.LOCK_UN)
+    sys.exit(run_with_single_instance_lock(run_reading_loop))
 
 
 if __name__ == "__main__":
