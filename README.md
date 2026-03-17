@@ -43,11 +43,11 @@ rm -f .bible_prompt_last_date
 
 ## Requirements
 
-- Python 3.10+
-- POSIX-compatible OS (Linux/macOS) for locking support in `read_today.py`
+- Python 3.11+
 - Bash (for `maybe_read_bible.sh`)
+- `filelock` Python package (see installation)
 
-No third-party Python packages are required.
+Locking now uses a Python runtime lock file managed by `filelock`.
 
 ## Installation
 
@@ -66,7 +66,11 @@ source .venv/bin/activate
 python3 -m pip install --upgrade pip
 ```
 
-This project currently runs with the Python standard library only, so there is no required dependency install step.
+Install required dependency:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
 
 ## Project Status
 
@@ -252,9 +256,9 @@ Behavior:
 
 - Uses `.bible_prompt_last_date` to avoid prompting more than once per date.
 - Updates the stamp only when you mark the reading complete in `read_today.py` (exit code 0). If you decline to advance or `read_today.py` fails, the stamp is not updated and you may be re-prompted.
-- Uses layered locks by design: `maybe_read_bible.sh` serializes prompt/stamp workflow with a shell lock directory.
-- `read_today.py` separately serializes `current_day.txt` counter read/modify/write with a file lock.
-- These locks protect different resources and are intentionally separate.
+- Uses a non-blocking Python runtime lock in `read_today.py` (`.bible-reader.lock`) as the single lock authority.
+- If another run already holds the lock, the second run exits gracefully with a clear message.
+- The shell helper stays thin: it handles once-per-day stamp logic and delegates locking to Python.
 
 ## Recommended Daily Workflow
 

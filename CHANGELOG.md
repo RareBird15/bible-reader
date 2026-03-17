@@ -19,6 +19,11 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 - Fix a missing command in the Quick Start section of the README for the full setup from EPUB workflow.
 
+### Changed
+
+- Replace POSIX `fcntl` locking in `read_today.py` with non-blocking `filelock` runtime locking.
+- Simplify `maybe_read_bible.sh` by removing manual PID/stale lock-directory handling and delegating lock ownership to Python.
+
 ## [1.0.1] - 2026-03-15
 
 ### Added
