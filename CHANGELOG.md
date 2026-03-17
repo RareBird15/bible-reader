@@ -6,6 +6,13 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.1.1] - 2026-03-17
+
+### Fixed
+
+- Update CI workflow to install project dependencies from `requirements.txt` before lint and tests.
+- Fix Ruff import-ordering in `test_read_today.py` so CI lint passes consistently.
+
 ## [1.1.0] - 2026-03-17
 
 ### Added
@@ -53,7 +60,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 - Updated repository policy to keep local runtime state and copyrighted source content out of version control.
 
-[unreleased]: https://github.com/RareBird15/bible-reader/compare/v1.1.0...HEAD
+[unreleased]: https://github.com/RareBird15/bible-reader/compare/v1.1.1...HEAD
+[1.1.1]: https://github.com/RareBird15/bible-reader/releases/tag/v1.1.1
 [1.1.0]: https://github.com/RareBird15/bible-reader/releases/tag/v1.1.0
 [1.0.1]: https://github.com/RareBird15/bible-reader/releases/tag/v1.0.1
 [1.0.0]: https://github.com/RareBird15/bible-reader/releases/tag/v1.0.0
