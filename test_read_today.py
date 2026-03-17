@@ -6,8 +6,9 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import read_today
 from filelock import Timeout
+
+import read_today
 from read_today import (
     EXIT_COMPLETE,
     EXIT_LOCKED,
