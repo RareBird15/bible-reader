@@ -7,8 +7,10 @@ from pathlib import Path
 from unittest.mock import patch
 
 import read_today
+from filelock import Timeout
 from read_today import (
     EXIT_COMPLETE,
+    EXIT_LOCKED,
     EXIT_USER_DECLINED,
     FIRST_FILE,
     LAST_FILE,
@@ -198,6 +200,40 @@ class ReadingWorkflowTests(unittest.TestCase):
         self.assertEqual(exit_code, EXIT_COMPLETE)
         self.assertEqual(plan_last_day, extra_day)
         self.assertEqual(final_day, extra_day + 1)
+
+
+class SingleInstanceLockTests(unittest.TestCase):
+    """Tests for non-blocking single-instance lock handling."""
+
+    def test_runs_workflow_when_lock_is_available(self) -> None:
+        class _FakeLock:
+            def __enter__(self) -> "_FakeLock":
+                return self
+
+            def __exit__(self, exc_type, exc, tb) -> bool:
+                return False
+
+        with patch.object(read_today, "FileLock", return_value=_FakeLock()):
+            exit_code = read_today.run_with_single_instance_lock(lambda: EXIT_COMPLETE)
+
+        self.assertEqual(exit_code, EXIT_COMPLETE)
+
+    def test_returns_locked_exit_code_on_contention(self) -> None:
+        class _ContendedLock:
+            def __enter__(self) -> "_ContendedLock":
+                raise Timeout("lock is held")
+
+            def __exit__(self, exc_type, exc, tb) -> bool:
+                return False
+
+        with (
+            patch.object(read_today, "FileLock", return_value=_ContendedLock()),
+            patch("read_today.write_user_output") as mock_output,
+        ):
+            exit_code = read_today.run_with_single_instance_lock(lambda: EXIT_COMPLETE)
+
+        self.assertEqual(exit_code, EXIT_LOCKED)
+        mock_output.assert_called_once()
 
 
 if __name__ == "__main__":
