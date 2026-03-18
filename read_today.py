@@ -12,7 +12,9 @@ Exit codes:
 import argparse
 import logging
 import re
+import shutil
 import sys
+import textwrap
 from pathlib import Path
 from typing import Callable, TextIO
 
@@ -33,6 +35,7 @@ EXIT_COMPLETE = 0
 EXIT_ERROR = 1
 EXIT_USER_DECLINED = 2
 EXIT_LOCKED = 3
+VERSE_LINE_RE = re.compile(r"^(\d+)\s+(.*)$")
 
 
 def parse_args() -> argparse.Namespace:
@@ -63,6 +66,56 @@ def log_unhandled_exception(message: str) -> None:
 def write_user_output(text: str = "") -> None:
     """Write plain output to stdout without logging metadata."""
     sys.stdout.write(f"{text}\n")
+
+
+def get_terminal_width(min_width: int = 20) -> int:
+    """Return a safe terminal width for wrapping output lines."""
+    columns = shutil.get_terminal_size(fallback=(100, 24)).columns
+    # Keep one spare column to avoid terminal-side soft wrapping.
+    return max(columns - 1, min_width)
+
+
+def wrap_for_terminal(line: str, min_width: int = 20) -> list[str]:
+    """Wrap one output line to the current terminal width.
+
+    Wrapping in Python avoids terminal soft-wrap edge cases where very long
+    lines can appear visually truncated in some prompt/rendering setups.
+    """
+    if not line:
+        return [""]
+
+    width = get_terminal_width(min_width=min_width)
+    return textwrap.wrap(
+        line,
+        width=width,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
+
+
+def format_scripture_output(line: str) -> list[str]:
+    """Format one scripture line for terminal display.
+
+    Verse lines are wrapped with hanging indentation so continuation lines stay
+    visually tied to the verse number.
+    """
+    match = VERSE_LINE_RE.match(line)
+    if not match:
+        return wrap_for_terminal(line)
+
+    verse_number, verse_text = match.groups()
+    prefix = f"{verse_number} "
+    continuation = " " * len(prefix)
+    width = get_terminal_width()
+
+    return textwrap.wrap(
+        verse_text,
+        width=width,
+        initial_indent=prefix,
+        subsequent_indent=continuation,
+        break_long_words=False,
+        break_on_hyphens=False,
+    )
 
 
 def write_counter(counter_file: TextIO, day_number: int) -> None:
@@ -216,7 +269,8 @@ def run_locked_workflow() -> tuple[int, int, int]:
         write_user_output()
 
         for line in scripture_lines:
-            write_user_output(line)
+            for wrapped_line in format_scripture_output(line):
+                write_user_output(wrapped_line)
 
         write_user_output()
 

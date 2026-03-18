@@ -1,6 +1,7 @@
 """Tests for read_today.py reading workflow and counter management."""
 
 import io
+import os
 import tempfile
 import unittest
 from pathlib import Path
@@ -15,7 +16,10 @@ from read_today import (
     EXIT_USER_DECLINED,
     FIRST_FILE,
     LAST_FILE,
+    format_scripture_output,
     get_plan_last_day,
+    get_terminal_width,
+    wrap_for_terminal,
     write_counter,
 )
 
@@ -41,6 +45,41 @@ class WriteCounterTests(unittest.TestCase):
         write_counter(buf, FIRST_FILE)
         buf.seek(0)
         self.assertEqual(buf.read(), f"{FIRST_FILE}\n")
+
+
+class TerminalWrapTests(unittest.TestCase):
+    """Tests for terminal-width wrapping behavior."""
+
+    def test_get_terminal_width_respects_actual_columns(self) -> None:
+        with patch("read_today.shutil.get_terminal_size") as mock_size:
+            mock_size.return_value = os.terminal_size((33, 24))
+            width = get_terminal_width()
+
+        self.assertEqual(width, 32)
+
+    def test_wraps_long_line_to_terminal_width(self) -> None:
+        long_line = " ".join(f"word{i:02}" for i in range(1, 20))
+        with patch("read_today.shutil.get_terminal_size") as mock_size:
+            mock_size.return_value = os.terminal_size((20, 24))
+            wrapped = wrap_for_terminal(long_line)
+
+        self.assertGreater(len(wrapped), 1)
+        self.assertTrue(all(len(part) <= 20 for part in wrapped))
+        self.assertEqual(" ".join(part.strip() for part in wrapped), long_line)
+
+    def test_preserves_blank_lines(self) -> None:
+        self.assertEqual(wrap_for_terminal(""), [""])
+
+    def test_formats_verse_with_hanging_indent(self) -> None:
+        verse = "25 Adam had sexual relations with his wife again, and she gave birth to another son."
+        with patch("read_today.shutil.get_terminal_size") as mock_size:
+            mock_size.return_value = os.terminal_size((32, 24))
+            wrapped = format_scripture_output(verse)
+
+        self.assertGreater(len(wrapped), 1)
+        self.assertTrue(wrapped[0].startswith("25 "))
+        self.assertTrue(all(line.startswith("   ") for line in wrapped[1:]))
+        self.assertEqual(" ".join(part.strip() for part in wrapped), verse)
 
 
 def _make_day_files(base: Path, commentary_base: Path, day: int) -> None:

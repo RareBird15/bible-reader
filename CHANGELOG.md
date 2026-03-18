@@ -6,6 +6,12 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-03-18
+
+### Fixed
+
+- Wrap scripture lines to real terminal width with verse-aware hanging indentation to prevent visual truncation and awkward continuation rendering.
+
 ## [1.1.1] - 2026-03-17
 
 ### Fixed
@@ -60,7 +66,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 - Updated repository policy to keep local runtime state and copyrighted source content out of version control.
 
-[unreleased]: https://github.com/RareBird15/bible-reader/compare/v1.1.1...HEAD
+[unreleased]: https://github.com/RareBird15/bible-reader/compare/v1.2.0...HEAD
+[1.2.0]: https://github.com/RareBird15/bible-reader/releases/tag/v1.2.0
 [1.1.1]: https://github.com/RareBird15/bible-reader/releases/tag/v1.1.1
 [1.1.0]: https://github.com/RareBird15/bible-reader/releases/tag/v1.1.0
 [1.0.1]: https://github.com/RareBird15/bible-reader/releases/tag/v1.0.1
