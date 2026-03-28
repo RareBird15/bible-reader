@@ -20,13 +20,15 @@ from pathlib import Path
 from typing import TextIO
 
 from filelock import FileLock, Timeout
+from xdg_base_dirs import xdg_data_home
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-SCRIPT_NAME = Path(__file__).name
-BASE = SCRIPT_DIR / "days"
-COUNTER = SCRIPT_DIR / "current_day.txt"
-RUNTIME_LOCK = SCRIPT_DIR / ".bible-reader.lock"
-COMMENTARY_BASE = SCRIPT_DIR / "days-commentary"
+DATA_DIR = xdg_data_home() / "bible-reader"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+
+BASE = DATA_DIR / "days"
+COMMENTARY_BASE = DATA_DIR / "days-commentary"
+COUNTER = DATA_DIR / "current_day.txt"
+RUNTIME_LOCK = DATA_DIR / ".bible-reader.lock"
 
 FIRST_FILE = 2
 LAST_FILE = 1190

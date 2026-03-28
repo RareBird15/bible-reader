@@ -11,6 +11,8 @@ import logging
 import sys
 from pathlib import Path
 
+from xdg_base_dirs import xdg_data_home
+
 
 def parse_args() -> argparse.Namespace:
     """Parse command-line arguments for script behavior."""
@@ -21,11 +23,10 @@ def parse_args() -> argparse.Namespace:
 
 logger = logging.getLogger(__name__)
 
-# Adjusted to find the root directory from src/bible_reader/
-SCRIPT_DIR = Path(__file__).resolve().parent
-PROJECT_ROOT = SCRIPT_DIR.parent.parent
-SOURCE = PROJECT_ROOT / "days-commentary"
-DEST = PROJECT_ROOT / "days"
+# Read and write from the standard XDG Data directory
+DATA_DIR = xdg_data_home() / "bible-reader"
+SOURCE = DATA_DIR / "days-commentary"
+DEST = DATA_DIR / "days"
 
 # The scripture is located between the first and second '##' headings in each file.
 MIN_HEADING_COUNT = 2

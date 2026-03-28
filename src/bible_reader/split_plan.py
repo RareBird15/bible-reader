@@ -6,9 +6,15 @@ import re
 import sys
 from pathlib import Path
 
-SCRIPT_DIR = Path(__file__).resolve().parent
-INPUT_FILE = SCRIPT_DIR / "plan.md"
-OUTPUT_DIR = SCRIPT_DIR / "days-commentary"
+from xdg_base_dirs import xdg_data_home
+
+# Look for the input plan in the current working directory
+INPUT_FILE = Path.cwd() / "plan.md"
+
+# Output split files to the standard XDG Data directory
+DATA_DIR = xdg_data_home() / "bible-reader"
+DATA_DIR.mkdir(parents=True, exist_ok=True)
+OUTPUT_DIR = DATA_DIR / "days-commentary"
 
 
 def parse_args() -> argparse.Namespace:

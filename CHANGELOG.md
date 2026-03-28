@@ -1,5 +1,3 @@
-<!-- markdownlint-disable MD024 -->
-
 # Changelog
 
 All notable changes to this project will be documented in this file.
@@ -7,6 +5,12 @@ All notable changes to this project will be documented in this file.
 The format is based on Keep a Changelog, and this project follows Semantic Versioning.
 
 ## [Unreleased]
+
+## [2.0.1] - 2026-03-28
+
+### Fixed
+
+- Fixed global command pathing: `bible-reader`, `split-plan`, and `extract-scripture` now correctly read and write data directly to the XDG Data directory (`~/.local/share/bible-reader/`) instead of the current working directory or package source folder. This ensures global CLI aliases work reliably from anywhere on the system.
 
 ## [2.0.0] - 2026-03-28
 
@@ -94,7 +98,8 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 - Updated repository policy to keep local runtime state and copyrighted source content out of version control.
 
-[unreleased]: https://github.com/RareBird15/bible-reader/compare/v2.0.0...HEAD
+[unreleased]: https://github.com/RareBird15/bible-reader/compare/v2.0.1...HEAD
+[2.0.1]: https://github.com/RareBird15/bible-reader/releases/tag/v2.0.1
 [2.0.0]: https://github.com/RareBird15/bible-reader/releases/tag/v2.0.0
 [1.2.0]: https://github.com/RareBird15/bible-reader/releases/tag/v1.2.0
 [1.1.1]: https://github.com/RareBird15/bible-reader/releases/tag/v1.1.1
