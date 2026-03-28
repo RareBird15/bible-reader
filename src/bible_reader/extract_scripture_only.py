@@ -9,7 +9,6 @@ lines are removed from the extracted scripture.
 import argparse
 import logging
 import sys
-from pathlib import Path
 
 from xdg_base_dirs import xdg_data_home
 
