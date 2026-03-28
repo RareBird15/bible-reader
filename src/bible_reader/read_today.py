@@ -15,8 +15,9 @@ import re
 import shutil
 import sys
 import textwrap
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable, TextIO
+from typing import TextIO
 
 from filelock import FileLock, Timeout
 
@@ -159,7 +160,135 @@ def get_plan_last_day() -> int:
     return max(day_numbers)
 
 
-def run_locked_workflow() -> tuple[int, int, int]:
+def get_commentary_lines(day: int) -> list[str]:
+    """Read and return lines from the commentary file."""
+    commentary_file = COMMENTARY_BASE / f"day{day:04}.txt"
+    logger.debug("Reading commentary header from %s", commentary_file)
+    return [
+        line.strip()
+        for line in commentary_file.read_text(encoding="utf-8").splitlines()
+        if line.strip()
+    ]
+
+
+def get_scripture_lines(day: int) -> list[str]:
+    """Read and return lines from the scripture file."""
+    file = BASE / f"day{day:04}.txt"
+    logger.debug("Reading scripture from %s", file)
+    return [
+        line.replace("\u00a0", " ").rstrip()
+        for line in file.read_text(encoding="utf-8").splitlines()
+    ]
+
+
+def output_scripture(
+    day_label: str,
+    reference: str,
+    scripture_lines: list[str],
+) -> None:
+    """Print the formatted scripture to the terminal."""
+    write_user_output()
+    write_user_output(day_label)
+    write_user_output(reference)
+    write_user_output()
+    for line in scripture_lines:
+        for wrapped_line in format_scripture_output(line):
+            write_user_output(wrapped_line)
+    write_user_output()
+
+
+def get_and_normalize_counter(counter_file: TextIO, plan_last_day: int) -> int:
+    """Read the counter file and normalize it if invalid."""
+    counter_file.seek(0)
+    counter_raw = counter_file.read().strip()
+    if not counter_raw:
+        logger.warning(
+            "Counter file %s was empty; resetting to first day %d",
+            COUNTER,
+            FIRST_FILE,
+        )
+        write_counter(counter_file, FIRST_FILE)
+        return FIRST_FILE
+    try:
+        day = int(counter_raw)
+    except ValueError:
+        logger.warning(
+            "Counter file %s contained non-numeric value %r; resetting to first day %d",
+            COUNTER,
+            counter_raw,
+            FIRST_FILE,
+        )
+        write_counter(counter_file, FIRST_FILE)
+        return FIRST_FILE
+    if day < FIRST_FILE:
+        logger.warning(
+            "Counter file %s had out-of-range day %d (< %d); resetting to first day",
+            COUNTER,
+            day,
+            FIRST_FILE,
+        )
+        write_counter(counter_file, FIRST_FILE)
+        return FIRST_FILE
+    max_valid_counter = plan_last_day + 1
+    if day > max_valid_counter:
+        logger.warning(
+            "Counter file %s had out-of-range day %d (> %d); resetting to first day",
+            COUNTER,
+            day,
+            max_valid_counter,
+        )
+        write_counter(counter_file, FIRST_FILE)
+        return FIRST_FILE
+    return day
+
+
+def prompt_and_update_counter(
+    counter_file: TextIO,
+    day: int,
+    plan_last_day: int,
+) -> tuple[int, int, int]:
+    """Prompt the user and handle advancing the counter file."""
+    if day > plan_last_day:
+        return (EXIT_COMPLETE, day, plan_last_day)
+
+    commentary_lines = get_commentary_lines(day)
+    if len(commentary_lines) < MIN_COMMENTARY_HEADER_LINES:
+        logger.error(
+            "Commentary file %s must contain at least "
+            "%d non-empty lines (day label and reference); "
+            "found %d non-empty lines.",
+            COMMENTARY_BASE / f"day{day:04}.txt",
+            MIN_COMMENTARY_HEADER_LINES,
+            len(commentary_lines),
+        )
+        return (EXIT_ERROR, day, plan_last_day)
+
+    day_label = commentary_lines[0]
+    reference = commentary_lines[1]
+    scripture_lines = get_scripture_lines(day)
+
+    output_scripture(day_label, reference, scripture_lines)
+
+    try:
+        answer = input("Mark this reading complete? (y/n): ").strip().lower()
+    except EOFError:
+        logger.warning("No interactive input available; treating as decline.")
+        answer = ""
+
+    if answer == "y":
+        write_counter(counter_file, day + 1)
+        logger.info("Advanced to next day.")
+        return (EXIT_COMPLETE, day + 1, plan_last_day)
+
+    logger.info("Keeping your place.")
+    return (EXIT_USER_DECLINED, day, plan_last_day)
+
+
+def run_locked_workflow() -> tuple[
+    int,
+    int,
+    int,
+]:
     """Execute read/prompt/update while holding the counter lock.
 
     Returns:
@@ -174,120 +303,9 @@ def run_locked_workflow() -> tuple[int, int, int]:
 
     plan_last_day = get_plan_last_day()
 
-    # Open in read+write mode and seek to the start to read/update the counter.
-    # "r+" is used instead of "a+" because "a+" sets O_APPEND at the OS level,
-    # causing all writes to go to EOF regardless of seek position, which would
-    # corrupt the counter (e.g. "3" + write "4\n" → "34\n" → reads as 34).
-    # File creation is handled by the COUNTER.exists() guard above, so "r+"
-    # (which requires the file to exist) is safe here.
     with COUNTER.open("r+", encoding="utf-8") as counter_file:
-        # NOTE: This function is expected to be called while the external
-        # runtime file lock is already held by main();
-        # no additional per-file advisory lock is acquired here to avoid
-        # nested locking complexity.
-        counter_file.seek(0)
-        counter_raw = counter_file.read().strip()
-        if not counter_raw:
-            logger.warning(
-                "Counter file %s was empty; resetting to first day %d",
-                COUNTER,
-                FIRST_FILE,
-            )
-            day = FIRST_FILE
-            write_counter(counter_file, FIRST_FILE)
-        else:
-            try:
-                day = int(counter_raw)
-            except ValueError:
-                logger.warning(
-                    "Counter file %s contained non-numeric value %r; resetting to first day %d",
-                    COUNTER,
-                    counter_raw,
-                    FIRST_FILE,
-                )
-                day = FIRST_FILE
-                write_counter(counter_file, FIRST_FILE)
-
-        if day < FIRST_FILE:
-            logger.warning(
-                "Counter file %s had out-of-range day %d (< %d); resetting to first day",
-                COUNTER,
-                day,
-                FIRST_FILE,
-            )
-            day = FIRST_FILE
-            write_counter(counter_file, FIRST_FILE)
-
-        max_valid_counter = plan_last_day + 1
-        if day > max_valid_counter:
-            logger.warning(
-                "Counter file %s had out-of-range day %d (> %d); resetting to first day",
-                COUNTER,
-                day,
-                max_valid_counter,
-            )
-            day = FIRST_FILE
-            write_counter(counter_file, FIRST_FILE)
-
-        if day > plan_last_day:
-            return (EXIT_COMPLETE, day, plan_last_day)
-
-        commentary_file = COMMENTARY_BASE / f"day{day:04}.txt"
-        logger.debug("Reading commentary header from %s", commentary_file)
-        commentary_lines = [
-            line.strip()
-            for line in commentary_file.read_text(encoding="utf-8").splitlines()
-            if line.strip()
-        ]
-
-        if len(commentary_lines) < MIN_COMMENTARY_HEADER_LINES:
-            logger.error(
-                (
-                    "Commentary file %s must contain at least "
-                    "%d non-empty lines (day label and reference); "
-                    "found %d non-empty lines."
-                ),
-                commentary_file,
-                MIN_COMMENTARY_HEADER_LINES,
-                len(commentary_lines),
-            )
-            return (EXIT_ERROR, day, plan_last_day)
-        day_label = commentary_lines[0]
-        reference = commentary_lines[1]
-
-        file = BASE / f"day{day:04}.txt"
-        logger.debug("Reading scripture from %s", file)
-        # Normalize non-breaking spaces and trim trailing whitespace.
-        scripture_lines = [
-            line.replace("\u00a0", " ").rstrip()
-            for line in file.read_text(encoding="utf-8").splitlines()
-        ]
-
-        write_user_output()
-        write_user_output(day_label)
-        write_user_output(reference)
-        write_user_output()
-
-        for line in scripture_lines:
-            for wrapped_line in format_scripture_output(line):
-                write_user_output(wrapped_line)
-
-        write_user_output()
-
-        try:
-            answer = input("Mark this reading complete? (y/n): ").strip().lower()
-        except EOFError:
-            logger.warning("No interactive input available; treating as decline.")
-            answer = ""
-
-        if answer == "y":
-            write_counter(counter_file, day + 1)
-            logger.info("Advanced to next day.")
-            return (EXIT_COMPLETE, day + 1, plan_last_day)
-
-        logger.info("Keeping your place.")
-        # User intentionally kept current day; this is not an execution error.
-        return (EXIT_USER_DECLINED, day, plan_last_day)
+        day = get_and_normalize_counter(counter_file, plan_last_day)
+        return prompt_and_update_counter(counter_file, day, plan_last_day)
 
 
 def run_reading_loop() -> int:
@@ -327,7 +345,7 @@ def run_with_single_instance_lock(workflow: Callable[[], int]) -> int:
     except Timeout:
         write_user_output(
             "Another Bible reader instance is already running. "
-            "Please try again in a moment."
+            "Please try again in a moment.",
         )
         logger.info("Skipped run because lock is already held: %s", RUNTIME_LOCK)
         return EXIT_LOCKED

@@ -1,15 +1,27 @@
+# Python / Packaging
 __pycache__/
-.pytest_cache/
 *.pyc
+.venv/
+dist/
+*.egg-info/
+
+# Testing / Linting
+.pytest_cache/
+.ruff_cache/
+
+# Editor / Tooling
+.vscode/
+.lh/
+
+# Local plan/content files (not distributed)
+plan.md
+days/
+days-commentary/
+*.epub
+
+# Legacy state files (pre-v2.0.0)
 .bible_prompt_last_date
 current_day.txt
 .bible-reader.lock
 .bible_prompt.lockdir
 .current_day.lock
-.vscode/
-
-# Local plan/content files (not distributed with this repo)
-plan.md
-days/
-days-commentary/
-*.epub

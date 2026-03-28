@@ -12,21 +12,23 @@ This repository distributes tooling, not copyrighted plan content.
 
 ## Development Setup
 
+This project uses `uv` for dependency management and packaging.
+
 ```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install --upgrade pip
+git clone [https://github.com/RareBird15/bible-reader.git](https://github.com/RareBird15/bible-reader.git)
+cd bible-reader
+uv sync
 ```
 
-No third-party Python packages are required for normal development.
+This will automatically create a virtual environment and install the package in editable mode along with its dependencies.
 
 ## Local Checks
 
 Run these before opening a pull request:
 
 ```bash
-ruff check .
-python3 -m unittest -q
+uvx ruff check .
+uv run python -m unittest discover tests -v
 ```
 
 ## Contribution Guidelines

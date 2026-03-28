@@ -5,8 +5,8 @@ import unittest
 from pathlib import Path
 from unittest.mock import patch
 
-import extract_scripture_only
-from extract_scripture_only import trim_blank_lines
+from bible_reader import extract_scripture_only
+from bible_reader.extract_scripture_only import trim_blank_lines
 
 
 class TrimBlankLinesTests(unittest.TestCase):
@@ -25,10 +25,6 @@ class TrimBlankLinesTests(unittest.TestCase):
     def test_no_outer_blank_lines_returns_original(self) -> None:
         lines = ["Verse 1", "", "Verse 2"]
         self.assertEqual(trim_blank_lines(lines), lines)
-
-
-if __name__ == "__main__":
-    unittest.main()
 
 
 class ExtractionTests(unittest.TestCase):
@@ -107,3 +103,7 @@ class ExtractionTests(unittest.TestCase):
             for i in range(1, 4):
                 result = (dest / f"day{i:04}.txt").read_text(encoding="utf-8")
                 self.assertEqual(result, f"Verse {i}\n")
+
+
+if __name__ == "__main__":
+    unittest.main()

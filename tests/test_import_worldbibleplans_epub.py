@@ -7,7 +7,7 @@ import unittest
 import zipfile
 from pathlib import Path
 
-import import_worldbibleplans_epub as importer
+import bible_reader.import_worldbibleplans_epub as importer
 
 
 def _build_sample_epub(epub_path: Path) -> None:

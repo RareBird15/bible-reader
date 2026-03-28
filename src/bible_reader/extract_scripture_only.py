@@ -21,9 +21,11 @@ def parse_args() -> argparse.Namespace:
 
 logger = logging.getLogger(__name__)
 
+# Adjusted to find the root directory from src/bible_reader/
 SCRIPT_DIR = Path(__file__).resolve().parent
-SOURCE = SCRIPT_DIR / "days-commentary"
-DEST = SCRIPT_DIR / "days"
+PROJECT_ROOT = SCRIPT_DIR.parent.parent
+SOURCE = PROJECT_ROOT / "days-commentary"
+DEST = PROJECT_ROOT / "days"
 
 # The scripture is located between the first and second '##' headings in each file.
 MIN_HEADING_COUNT = 2
@@ -118,18 +120,14 @@ if __name__ == "__main__":
         main()
     except FileNotFoundError:
         log_unhandled_exception(
-            (
-                "File not found during scripture extraction "
-                "(check source/commentary files and destination directory)"
-            ),
+            "File not found during scripture extraction "
+            "(check source/commentary files and destination directory)",
         )
         sys.exit(EXIT_ERROR)
     except PermissionError:
         log_unhandled_exception(
-            (
-                "Permission error during scripture extraction "
-                "(insufficient rights to read source or write destination)"
-            ),
+            "Permission error during scripture extraction "
+            "(insufficient rights to read source or write destination)",
         )
         sys.exit(EXIT_ERROR)
     except OSError:

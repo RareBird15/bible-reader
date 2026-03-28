@@ -12,7 +12,7 @@ Describe the problem clearly.
 
 ## Command or Workflow
 
-What did you run?
+What did you run? (If possible, please re-run your command with the `--debug` flag and include the output).
 
 ```bash
 # paste command(s) here
@@ -44,8 +44,9 @@ If relevant, describe whether this affects screen-reader usability, prompt clari
 
 - OS:
 - Python version:
+- `uv` version (if applicable):
 - Shell:
 
 ## Additional Notes
 
-Add any other context, logs, or screenshots if they help.
+Add any other context or logs. **Please provide all terminal output and error messages as pasted plain text rather than screenshots**, as this project is maintained using a screen reader.

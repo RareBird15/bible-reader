@@ -17,8 +17,10 @@ from xml.etree import ElementTree as ET
 
 # cspell:words opendocument rootfile itemref idref
 
+# Adjusted to point to the project root directory
 SCRIPT_DIR = Path(__file__).resolve().parent
-DEFAULT_OUTPUT = SCRIPT_DIR / "plan.md"
+PROJECT_ROOT = SCRIPT_DIR.parent.parent
+DEFAULT_OUTPUT = PROJECT_ROOT / "plan.md"
 
 CONTAINER_PATH = "META-INF/container.xml"
 OPF_NS = "http://www.idpf.org/2007/opf"

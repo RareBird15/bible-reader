@@ -12,8 +12,8 @@ Describe the change in a few sentences.
 
 ## Validation
 
-- [ ] `ruff check .`
-- [ ] `python3 -m unittest -q`
+- [ ] `uvx ruff check .`
+- [ ] `uv run python -m unittest discover tests -v`
 - [ ] I tested the affected workflow manually, if applicable
 
 ## Accessibility Review

@@ -5,12 +5,14 @@ import os
 import tempfile
 import unittest
 from pathlib import Path
+from types import TracebackType
+from typing import Self
 from unittest.mock import patch
 
 from filelock import Timeout
 
-import read_today
-from read_today import (
+from bible_reader import read_today
+from bible_reader.read_today import (
     EXIT_COMPLETE,
     EXIT_LOCKED,
     EXIT_USER_DECLINED,
@@ -51,7 +53,7 @@ class TerminalWrapTests(unittest.TestCase):
     """Tests for terminal-width wrapping behavior."""
 
     def test_get_terminal_width_respects_actual_columns(self) -> None:
-        with patch("read_today.shutil.get_terminal_size") as mock_size:
+        with patch("bible_reader.read_today.shutil.get_terminal_size") as mock_size:
             mock_size.return_value = os.terminal_size((33, 24))
             width = get_terminal_width()
 
@@ -59,20 +61,24 @@ class TerminalWrapTests(unittest.TestCase):
 
     def test_wraps_long_line_to_terminal_width(self) -> None:
         long_line = " ".join(f"word{i:02}" for i in range(1, 20))
-        with patch("read_today.shutil.get_terminal_size") as mock_size:
-            mock_size.return_value = os.terminal_size((20, 24))
+        max_width = 20
+        with patch("bible_reader.read_today.shutil.get_terminal_size") as mock_size:
+            mock_size.return_value = os.terminal_size((max_width, 24))
             wrapped = wrap_for_terminal(long_line)
 
         self.assertGreater(len(wrapped), 1)
-        self.assertTrue(all(len(part) <= 20 for part in wrapped))
+        self.assertTrue(all(len(part) <= max_width for part in wrapped))
         self.assertEqual(" ".join(part.strip() for part in wrapped), long_line)
 
     def test_preserves_blank_lines(self) -> None:
         self.assertEqual(wrap_for_terminal(""), [""])
 
     def test_formats_verse_with_hanging_indent(self) -> None:
-        verse = "25 Adam had sexual relations with his wife again, and she gave birth to another son."
-        with patch("read_today.shutil.get_terminal_size") as mock_size:
+        verse = (
+            "25 Adam had sexual relations with his wife again, "
+            "and she gave birth to another son."
+        )
+        with patch("bible_reader.read_today.shutil.get_terminal_size") as mock_size:
             mock_size.return_value = os.terminal_size((32, 24))
             wrapped = format_scripture_output(verse)
 
@@ -108,7 +114,7 @@ def _run_workflow(
         patch.object(read_today, "COUNTER", counter),
         patch.object(read_today, "COMMENTARY_BASE", commentary_base),
         patch.object(read_today, "BASE", base),
-        patch("read_today.write_user_output"),
+        patch("bible_reader.read_today.write_user_output"),
         patch("builtins.input", return_value=user_input),
     ):
         return read_today.run_locked_workflow()
@@ -184,7 +190,7 @@ class ReadingWorkflowTests(unittest.TestCase):
             patch.object(read_today, "COUNTER", self.counter),
             patch.object(read_today, "COMMENTARY_BASE", self.commentary_base),
             patch.object(read_today, "BASE", self.base),
-            patch("read_today.write_user_output"),
+            patch("bible_reader.read_today.write_user_output"),
             patch("builtins.input", return_value=user_input),
         ):
             return read_today.run_locked_workflow()
@@ -214,7 +220,7 @@ class ReadingWorkflowTests(unittest.TestCase):
             patch.object(read_today, "COUNTER", self.counter),
             patch.object(read_today, "COMMENTARY_BASE", self.commentary_base),
             patch.object(read_today, "BASE", self.base),
-            patch("read_today.write_user_output"),
+            patch("bible_reader.read_today.write_user_output"),
             patch("builtins.input", side_effect=EOFError),
         ):
             exit_code, final_day, _ = read_today.run_locked_workflow()
@@ -247,10 +253,15 @@ class SingleInstanceLockTests(unittest.TestCase):
 
     def test_runs_workflow_when_lock_is_available(self) -> None:
         class _FakeLock:
-            def __enter__(self) -> "_FakeLock":
+            def __enter__(self) -> Self:
                 return self
 
-            def __exit__(self, exc_type, exc, tb) -> bool:
+            def __exit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc: BaseException | None,
+                tb: TracebackType | None,
+            ) -> bool:
                 return False
 
         with patch.object(read_today, "FileLock", return_value=_FakeLock()):
@@ -260,15 +271,21 @@ class SingleInstanceLockTests(unittest.TestCase):
 
     def test_returns_locked_exit_code_on_contention(self) -> None:
         class _ContendedLock:
-            def __enter__(self) -> "_ContendedLock":
-                raise Timeout("lock is held")
+            def __enter__(self) -> Self:
+                msg = "lock is held"
+                raise Timeout(msg)
 
-            def __exit__(self, exc_type, exc, tb) -> bool:
+            def __exit__(
+                self,
+                exc_type: type[BaseException] | None,
+                exc: BaseException | None,
+                tb: TracebackType | None,
+            ) -> bool:
                 return False
 
         with (
             patch.object(read_today, "FileLock", return_value=_ContendedLock()),
-            patch("read_today.write_user_output") as mock_output,
+            patch("bible_reader.read_today.write_user_output") as mock_output,
         ):
             exit_code = read_today.run_with_single_instance_lock(lambda: EXIT_COMPLETE)
 

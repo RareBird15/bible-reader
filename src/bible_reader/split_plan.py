@@ -50,18 +50,14 @@ def validate_section(section: str, section_number: int) -> list[str]:
     min_non_empty = 1 if section_number == 1 else MIN_NON_EMPTY_LINES
     if len(non_empty_lines) < min_non_empty:
         errors.append(
-            (
-                f"section {section_number} has {len(non_empty_lines)} non-empty line(s); "
-                f"expected at least {min_non_empty}"
-            )
+            f"section {section_number} has {len(non_empty_lines)} non-empty line(s); "
+            f"expected at least {min_non_empty}",
         )
 
     if section_number > 1 and heading_count < MIN_H2_HEADINGS_PER_DAY:
         errors.append(
-            (
-                f"section {section_number} has {heading_count} '##' heading(s); "
-                f"expected at least {MIN_H2_HEADINGS_PER_DAY}"
-            )
+            f"section {section_number} has {heading_count} '##' heading(s); "
+            f"expected at least {MIN_H2_HEADINGS_PER_DAY}",
         )
 
     return errors
@@ -109,13 +105,14 @@ def main() -> None:
 if __name__ == "__main__":
     try:
         main()
-    except ValueError as exc:
+    except ValueError:
         if not logging.getLogger().hasHandlers():
             logging.basicConfig(
                 level=logging.ERROR,
                 format="%(asctime)s %(levelname)s %(message)s",
             )
-        logger.error("Validation error while splitting plan: %s", exc)
+        # Fix TRY401: Removed string interpolation and exc argument.
+        logger.exception("Validation error while splitting plan.")
         sys.exit(EXIT_ERROR)
     except (FileNotFoundError, PermissionError):
         log_unhandled_exception(
@@ -126,9 +123,7 @@ if __name__ == "__main__":
     # OS-level failures (for example, invalid path state or interrupted I/O).
     except OSError:
         log_unhandled_exception(
-            (
-                "Unexpected OS error while processing plan files "
-                "(reading input or writing output day files)"
-            ),
+            "Unexpected OS error while processing plan files "
+            "(reading input or writing output day files)",
         )
         sys.exit(EXIT_ERROR)

@@ -1,76 +1,61 @@
 # Bible Reader
 
-[![CI](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml)
+[](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml)
 
 A lightweight terminal workflow for daily Bible reading.
 
-This project stores a day-by-day reading plan, shows one day at a time, and tracks your progress in a counter file.
+This project stores a day-by-day reading plan, shows one day at a time, and tracks your progress using standard Linux (XDG) directories.
 
 ## What This Project Does
 
+- Imports a WorldBiblePlans-style EPUB into a normalized markdown plan.
 - Splits a full markdown plan into one file per day with commentary.
 - Extracts scripture-only files from commentary files.
 - Shows today's reading in the terminal and optionally advances your day counter.
-- Includes a shell helper to prompt only once per day.
+- Includes a command to prompt you to read only once per day, perfect for your shell startup file.
 
 ## Project Structure
 
-- `plan.md`: Source markdown reading plan.
+- `plan.md`: Source markdown reading plan (generated or provided by you).
 - `days-commentary/`: Per-day files containing label, reference, scripture, and commentary.
 - `days/`: Per-day scripture-only files.
-- `current_day.txt`: Current day number used by the reader script.
-- `split_plan.py`: Builds `days-commentary/` from `plan.md`.
-- `extract_scripture_only.py`: Builds `days/` from `days-commentary/`.
-- `import_worldbibleplans_epub.py`: Imports a WorldBiblePlans-style EPUB into normalized `plan.md`.
-- `read_today.py`: Displays current day and prompts to mark complete.
-- `maybe_read_bible.sh`: Shell wrapper that runs `read_today.py` once per day.
+- `src/bible_reader/`: The core Python package containing all script logic.
+- `tests/`: Unit tests for the package.
 
-## Local State Files
+## Local State Files (XDG Standards)
 
-The following files are local runtime state and should not be committed:
+This project respects standard Linux directory structures to keep your home folder clean. Your reading progress and prompt history are stored here:
 
-- `current_day.txt`: your personal reading position
-- `.bible_prompt_last_date`: last date the daily shell prompt completed
+- **Reading Progress:** `~/.local/share/bible-reader/current_day.txt`
+- **Daily Prompt Stamp:** `~/.local/state/bible-reader/last_prompt_date.txt`
 
-These files are intentionally listed in `.gitignore`.
-
-If you ever need to reset your local progress:
-
-```bash
-echo 2 > current_day.txt
-rm -f .bible_prompt_last_date
-```
+If you ever need to reset your local progress, you can edit or delete those specific files.
 
 ## Requirements
 
 - Python 3.11+
-- Bash (for `maybe_read_bible.sh`)
-- `filelock` Python package (see installation)
-
-Locking now uses a Python runtime lock file managed by `filelock`.
+- [uv](https://github.com/astral-sh/uv) (Recommended for installation and dependency management)
 
 ## Installation
 
-Clone the repository and move into the project directory:
+This project is built as a modern Python package.
 
-```bash
-git clone https://github.com/RareBird15/bible-reader.git
-cd bible-reader
-```
+1. Clone the repository and move into the project directory:
 
-Optional but recommended:
+   ```bash
+   git clone [https://github.com/RareBird15/bible-reader.git](https://github.com/RareBird15/bible-reader.git)
+   cd bible-reader
+   ```
 
-```bash
-python3 -m venv .venv
-source .venv/bin/activate
-python3 -m pip install --upgrade pip
-```
+2. Install the package and its dependencies using `uv`. The `-e` flag installs it in "editable" mode so any changes you pull from GitHub apply immediately.
 
-Install required dependency:
+   ```bash
+   uv pip install -e .
+   ```
 
-```bash
-python3 -m pip install -r requirements.txt
-```
+   _Note: If you do not use `uv`, standard `pip install -e .` will also work._
+
+Once installed, the tools are available as global terminal commands.
 
 ## Project Status
 
@@ -86,10 +71,10 @@ This project aims to provide an easy, low-friction, screen-reader-friendly way t
 
 When changing output, prompts, or documentation, prefer:
 
-- plain, readable text over decorative formatting
-- predictable headings and labels
-- wording that makes sense when read aloud by a screen reader
-- output that does not rely on visual alignment, color, or ASCII art to communicate meaning
+- plain, readable text over decorative formatting.
+- predictable headings and labels.
+- wording that makes sense when read aloud by a screen reader.
+- output that does not rely on visual alignment, color, or ASCII art to communicate meaning.
 
 Contributors should treat regressions in accessibility as real regressions, not cosmetic issues.
 
@@ -98,61 +83,93 @@ Contributors should treat regressions in accessibility as real regressions, not 
 Run these checks locally before committing:
 
 ```bash
-ruff check .
-python3 -m unittest -q
+uv run ruff check .
+uv run python3 -m unittest discover tests -v
 ```
 
-## Changelog and Releases
+## Quick Start (Daily Workflow)
 
-- `CHANGELOG.md` tracks user-visible changes using versioned sections.
-- Pushing a tag like `v1.0.0` triggers `.github/workflows/release.yml`.
-- The release workflow publishes a GitHub Release and uses the matching `CHANGELOG.md` section as release notes.
-- Contribution guidelines live in `CONTRIBUTING.md`.
-- This repository is licensed under the MIT License. See `LICENSE`.
+Because this is a Python package, you no longer need to type `python3 path/to/script.py`. You can use the installed commands from anywhere in your terminal.
 
-Typical release flow:
+### 1\. One-Time Setup (From EPUB)
+
+If you are starting from a new WorldBiblePlans EPUB, run this sequence from the project root:
 
 ```bash
-# 1) Update CHANGELOG.md with a new version section (for example: ## [1.1.0] - YYYY-MM-DD)
-# 2) Commit and push the changelog update
-git add CHANGELOG.md
-git commit -m "Prepare v1.1.0"
-git push origin main
-
-# 3) Create and push the version tag
-git tag v1.1.0
-git push origin v1.1.0
+import-epub /path/to/plan.epub --output plan.md
+split-plan
+extract-scripture
 ```
 
-## Note on Day Numbering
+### 2\. Daily Reading
 
-The reading counter starts at day 2 (`FIRST_FILE = 2`) because day 1 in the source
-file is a cover or introduction page, not a reading day.
-
-`read_today.py` now detects the plan length dynamically from `days-commentary/day*.txt`
-and uses `LAST_FILE = 1190` only as a fallback when no day files are found.
-
-## Quick Start
-
-From the project root:
+To read today's passage:
 
 ```bash
-python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
-python3 split_plan.py
-python3 extract_scripture_only.py
-python3 read_today.py
+bible-reader
 ```
 
 When prompted:
 
-- Enter `y` to advance to the next day.
+- Enter `y` to mark the reading complete and advance to the next day.
 - Enter `n` to keep your current day.
+
+### 3\. Shell Integration (Read Once Per Day)
+
+If you want your terminal to prompt you to read when you open it, but only once per day, add this command to your `.bashrc` or `.zshrc`:
+
+```bash
+maybe-read-bible
+```
+
+## Command Reference
+
+All commands support a `--debug` flag for verbose troubleshooting output.
+
+### `import-epub`
+
+**Usage:** `import-epub /path/to/plan.epub --output plan.md`
+
+- Reads EPUB spine order from the package document.
+- Detects day pages from `h1` headings like `Day N:`.
+- Writes normalized sections with scripture and commentary `##` headings.
+
+### `split-plan`
+
+**Usage:** `split-plan`
+
+- Splits `plan.md` and writes `days-commentary/day0001.txt`, `day0002.txt`, etc.
+- Validates each non-cover section has at least two `##` headings.
+
+### `extract-scripture`
+
+**Usage:** `extract-scripture`
+
+- Extracts the text between the first and second `##` headings from the commentary files.
+- Writes scripture-only files into `days/` with matching day filenames.
+
+### `bible-reader`
+
+**Usage:** `bible-reader`
+
+- Initializes `current_day.txt` in your XDG Data directory if missing.
+- Prints the day label, reference, and scripture text.
+- Prompts to mark complete and increments the counter on `y`.
+- Uses a file lock to prevent multiple terminal tabs from overwriting your progress concurrently.
+
+### `maybe-read-bible`
+
+**Usage:** `maybe-read-bible`
+
+- Uses a date stamp in your XDG State directory to avoid prompting more than once per calendar date.
+- Updates the stamp only when you mark the reading complete (`y`).
+- Delegates locking and reading logic to the main `bible-reader` workflow.
 
 ## Plan Source and Compatibility
 
-The EPUB import flow is designed for plans from WorldBiblePlans.com:
+The EPUB import flow is designed specifically for plans from WorldBiblePlans.com:
 
-- <https://worldbibleplans.com/>
+- [https://worldbibleplans.com/](https://worldbibleplans.com/)
 
 Current compatibility target:
 
@@ -162,9 +179,7 @@ Known-compatible sample:
 
 - `New-Living-Translation-2015-Chuck-Smith-Commentary-Gen-to-Rev-Scriptures-1-Chapter-Daily-Verse-By-Day.epub`
 
-Important limitation:
-
-- Other EPUB layouts (for example, plans without commentary, plans with a different heading structure, or custom/non-WorldBiblePlans files) are not guaranteed to parse correctly because they have not been broadly tested yet.
+**Important limitation:** Other EPUB layouts (e.g., plans without commentary, alternate heading structures) are not guaranteed to parse correctly as they have not been broadly tested.
 
 ## Copyright and Content Notice
 
@@ -173,159 +188,3 @@ This repository is intended to distribute tooling only.
 - Do not commit or publish copyrighted plan content (for example EPUB source files, generated `plan.md`, `days/`, or `days-commentary/`) unless you have explicit rights to do so.
 - The repository ignores those content paths by default so they stay local.
 - Users should provide their own plan files and are responsible for ensuring they have permission to use that content.
-
-## Script Usage
-
-### 1) Split Plan Into Day Files
-
-```bash
-python3 split_plan.py
-```
-
-Debug mode:
-
-```bash
-python3 split_plan.py --debug
-```
-
-Output:
-
-- Writes `days-commentary/day0001.txt`, `day0002.txt`, and so on.
-- Validates each non-cover section has at least two `##` headings.
-
-### 0) Import From EPUB (Optional)
-
-```bash
-python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
-```
-
-Debug mode:
-
-```bash
-python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md --debug
-```
-
-Behavior:
-
-- Reads EPUB spine order from the package document.
-- Detects day pages from `h1` headings like `Day N:`.
-- Writes normalized sections with scripture and commentary `##` headings for `split_plan.py`.
-
-### 2) Extract Scripture-Only Files
-
-```bash
-python3 extract_scripture_only.py
-```
-
-Debug mode:
-
-```bash
-python3 extract_scripture_only.py --debug
-```
-
-Output:
-
-- Writes scripture-only files into `days/` with matching day filenames.
-
-### 3) Read Today and Advance Counter
-
-```bash
-python3 read_today.py
-```
-
-Debug mode:
-
-```bash
-python3 read_today.py --debug
-```
-
-Behavior:
-
-- Initializes `current_day.txt` if missing.
-- Stops when day exceeds configured `LAST_FILE`.
-- Prints day label, reference, and scripture text.
-- Prompts to mark complete and increments the counter on `y`.
-
-### 4) Prompt Only Once Per Day (Shell Helper)
-
-```bash
-bash maybe_read_bible.sh
-```
-
-Behavior:
-
-- Uses `.bible_prompt_last_date` to avoid prompting more than once per date.
-- Updates the stamp only when you mark the reading complete in `read_today.py` (exit code 0). If you decline to advance or `read_today.py` fails, the stamp is not updated and you may be re-prompted.
-- Uses a non-blocking Python runtime lock in `read_today.py` (`.bible-reader.lock`) as the single lock authority.
-- If another run already holds the lock, the second run exits gracefully with a clear message.
-- The shell helper stays thin: it handles once-per-day stamp logic and delegates locking to Python.
-
-## Recommended Daily Workflow
-
-### Full Setup From EPUB
-
-Run this sequence when starting from a new WorldBiblePlans EPUB:
-
-```bash
-python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
-python3 split_plan.py
-python3 extract_scripture_only.py
-python3 read_today.py
-```
-
-1. Generate/refresh day files when the source plan changes:
-
-   ```bash
-   python3 import_worldbibleplans_epub.py /path/to/plan.epub --output plan.md
-   ```
-
-   then:
-
-   ```bash
-   python3 split_plan.py
-   python3 extract_scripture_only.py
-   ```
-
-2. Run your daily reading:
-
-   ```bash
-   python3 read_today.py
-   ```
-
-3. Optional: call once-per-day helper from your shell startup or a scheduled task:
-
-   ```bash
-   bash maybe_read_bible.sh
-   ```
-
-## Future Ideas
-
-- Broaden EPUB compatibility beyond the currently tested WorldBiblePlans-style layouts.
-- Add a small bootstrap command that runs import, split, and extract in one step.
-- Add optional tests around shell-wrapper behavior and locking edge cases.
-- Add support for alternate reading-plan formats besides EPUB-derived markdown.
-- Improve release notes and changelog maintenance with more automation over time.
-
-## Contributing
-
-Contributions are welcome, especially focused bug fixes, test coverage improvements, and importer compatibility work.
-
-Before opening a pull request:
-
-- Read `CONTRIBUTING.md` for development expectations.
-- Make sure changes preserve or improve accessibility.
-- Avoid committing copyrighted source content or generated plan output.
-- Run the local checks listed above.
-
-## Logging
-
-All Python scripts support:
-
-- Default: `INFO` level
-- Verbose troubleshooting: `--debug` for `DEBUG` level
-
-Example:
-
-```bash
-python3 read_today.py --debug
-```
