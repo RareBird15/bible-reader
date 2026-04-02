@@ -9,6 +9,9 @@ on:
 jobs:
   lint-and-test:
     runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout
@@ -20,13 +23,16 @@ jobs:
           enable-cache: true
 
       - name: Set up Python
-        run: uv python install 3.11
+        run: uv python install ${{ matrix.python-version }}
 
       - name: Install the project
         run: uv sync
 
       - name: Lint with Ruff
         run: uvx ruff check .
+
+      - name: Check formatting with Ruff
+        run: uvx ruff format --check .
 
       - name: Run unit tests
         run: uv run python -m unittest discover tests -v
