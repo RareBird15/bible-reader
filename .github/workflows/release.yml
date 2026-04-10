@@ -114,6 +114,7 @@ jobs:
   publish-pypi:
     needs: create-release
     runs-on: ubuntu-latest
+    environment: pypi
     permissions:
       id-token: write
       contents: read
