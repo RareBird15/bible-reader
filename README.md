@@ -1,6 +1,7 @@
 # Bible Reader
 
-[](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml)
+- [![CI Status](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml/badge.svg)](https://github.com/RareBird15/bible-reader/actions/workflows/ci.yml)
+- [![PyPI version](https://badge.fury.io/py/bible-reader.svg)](https://badge.fury.io/py/bible-reader)
 
 A lightweight terminal workflow for daily Bible reading.
 
@@ -38,24 +39,17 @@ If you ever need to reset your local progress, you can edit or delete those spec
 
 ## Installation
 
-This project is built as a modern Python package.
+The easiest way to install the Bible Reader is using [uv](https://github.com/astral-sh/uv). This installs the tools globally so you can use them anywhere.
 
-1. Clone the repository and move into the project directory:
+```bash
+uv tool install bible-reader
+```
 
-   ```bash
-   git clone [https://github.com/RareBird15/bible-reader.git](https://github.com/RareBird15/bible-reader.git)
-   cd bible-reader
-   ```
+If you prefer using standard `pip`:
 
-2. Install the package and its dependencies using `uv`. The `-e` flag installs it in "editable" mode so any changes you pull from GitHub apply immediately.
-
-   ```bash
-   uv pip install -e .
-   ```
-
-   _Note: If you do not use `uv`, standard `pip install -e .` will also work._
-
-Once installed, the tools are available as global terminal commands.
+```bash
+pip install bible-reader
+```
 
 ## Project Status
 
@@ -91,9 +85,9 @@ uv run python3 -m unittest discover tests -v
 
 Because this is a Python package, you no longer need to type `python3 path/to/script.py`. You can use the installed commands from anywhere in your terminal.
 
-### 1\. One-Time Setup (From EPUB)
+### 1. One-Time Setup (From EPUB)
 
-If you are starting from a new WorldBiblePlans EPUB, run this sequence from the project root:
+If you are starting from a new WorldBiblePlans EPUB, create a folder for your plan and run this sequence:
 
 ```bash
 import-epub /path/to/plan.epub --output plan.md
@@ -101,7 +95,7 @@ split-plan
 extract-scripture
 ```
 
-### 2\. Daily Reading
+### 2. Daily Reading
 
 To read today's passage:
 
@@ -114,7 +108,7 @@ When prompted:
 - Enter `y` to mark the reading complete and advance to the next day.
 - Enter `n` to keep your current day.
 
-### 3\. Shell Integration (Read Once Per Day)
+### 3. Shell Integration (Read Once Per Day)
 
 If you want your terminal to prompt you to read when you open it, but only once per day, add this command to your `.bashrc` or `.zshrc`:
 
@@ -188,3 +182,13 @@ This repository is intended to distribute tooling only.
 - Do not commit or publish copyrighted plan content (for example EPUB source files, generated `plan.md`, `days/`, or `days-commentary/`) unless you have explicit rights to do so.
 - The repository ignores those content paths by default so they stay local.
 - Users should provide their own plan files and are responsible for ensuring they have permission to use that content.
+
+## Request Support
+
+If a specific Bible plan from World Bible Plans is not working with this tool, I would like to help.
+
+Because I use a screen reader, please provide information as **plain text** or **Markdown**. Please do not send screenshots of the error or the plan.
+
+1. **Check your file:** Ensure your plan has "Day" headings (like `Day 1:`) and section headings (like `## Scripture`).
+2. **Open an Issue:** Go to the "Issues" tab on GitHub and describe what happened.
+3. **Paste a sample:** If possible, paste a small section of the text from the EPUB that is causing the error.
