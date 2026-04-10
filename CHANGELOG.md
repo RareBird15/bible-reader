@@ -6,6 +6,17 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 
 ## [Unreleased]
 
+## [2.0.2] - 2026-04-09
+
+### Added
+
+- Publish package to PyPi for easy installation via Uv or pip.
+- Update README with installation instructions for PyPi and Uv, and add usage examples for the new global CLI commands.
+
+### Fixed
+
+- Fix out-of-date version numbers in `pyproject.toml` and `uv.lock` to reflect the new 2.0.2release.
+
 ## [2.0.1] - 2026-03-28
 
 ### Fixed
@@ -99,6 +110,7 @@ The format is based on Keep a Changelog, and this project follows Semantic Versi
 - Updated repository policy to keep local runtime state and copyrighted source content out of version control.
 
 [unreleased]: https://github.com/RareBird15/bible-reader/compare/v2.0.1...HEAD
+[2.0.2]: https://github.com/RareBird15/bible-reader/releases/tag/v2.0.2
 [2.0.1]: https://github.com/RareBird15/bible-reader/releases/tag/v2.0.1
 [2.0.0]: https://github.com/RareBird15/bible-reader/releases/tag/v2.0.0
 [1.2.0]: https://github.com/RareBird15/bible-reader/releases/tag/v1.2.0
