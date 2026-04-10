@@ -95,7 +95,7 @@ split-plan
 extract-scripture
 ```
 
-### 2\. Daily Reading
+### 2. Daily Reading
 
 To read today's passage:
 
@@ -108,7 +108,7 @@ When prompted:
 - Enter `y` to mark the reading complete and advance to the next day.
 - Enter `n` to keep your current day.
 
-### 3\. Shell Integration (Read Once Per Day)
+### 3. Shell Integration (Read Once Per Day)
 
 If you want your terminal to prompt you to read when you open it, but only once per day, add this command to your `.bashrc` or `.zshrc`:
 

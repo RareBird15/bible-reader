@@ -27,7 +27,6 @@ jobs:
           TAG_NAME: ${{ github.ref_name }}
         run: |
           set -eu
-          VERSION="${TAG_NAME#v}"
 
           python3 - <<'PY'
           import os
@@ -43,7 +42,7 @@ jobs:
                   f"Release {version}\n\nSee repository history for details.\n",
                   encoding="utf-8",
               )
-              raise SystemExit(0)
+              raise SystemExit(1)
 
           text = changelog.read_text(encoding="utf-8")
 
@@ -62,7 +61,7 @@ jobs:
                   ),
                   encoding="utf-8",
               )
-              raise SystemExit(0)
+              raise SystemExit(1)
 
           notes = match.group(1).strip()
           out.write_text(notes + "\n", encoding="utf-8")
